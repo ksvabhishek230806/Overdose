@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>overdose — Kitchen Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+  body{overflow-x:auto;}
+  .kitchen-header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:24px 40px; border-bottom:1px solid var(--border);
+  }
+  .kitchen-brand{display:flex; align-items:center; gap:16px;}
+  .kitchen-brand h1{font-family:'Unbounded', sans-serif; font-weight:700; font-size:19px; color:var(--cream); letter-spacing:-.01em;}
+  .kitchen-brand span{
+    display:block; font-family:'Space Mono', monospace; font-size:11.5px; letter-spacing:0.12em; color:var(--orange-2); margin-top:2px;
+  }
+  .header-meta{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .kitchen-clock{
+    font-family:'Space Mono', monospace; font-size:14px; color:var(--gray); letter-spacing:0.06em;
+    display:flex; align-items:center; gap:10px;
+  }
+  .kitchen-clock .dot{width:8px; height:8px; border-radius:50%; background:#3fca6a; box-shadow:0 0 10px rgba(63,202,106,0.7);}
+
+  .sync-pill{
+    display:flex; align-items:center; gap:8px;
+    font-family:'Space Mono', monospace; font-size:10.5px; letter-spacing:0.08em;
+    padding:6px 12px; border-radius:999px; border:1px solid var(--border-strong); color:var(--gray-dim);
+    transition: color .2s ease, border-color .2s ease;
+  }
+  .sync-pill .sync-dot{ width:7px; height:7px; border-radius:50%; background:var(--gray-dim); flex-shrink:0; }
+  .sync-pill[data-mode="connecting"] .sync-dot{ animation: syncPulse 1s ease-in-out infinite; }
+  .sync-pill[data-mode="live"]{ color:#3fca6a; border-color:rgba(63,202,106,0.35); }
+  .sync-pill[data-mode="live"] .sync-dot{ background:#3fca6a; box-shadow:0 0 8px rgba(63,202,106,0.7); animation: syncPulse 1.8s ease-in-out infinite; }
+  .sync-pill[data-mode="local"]{ color:#e8a530; border-color:rgba(232,165,48,0.35); }
+  .sync-pill[data-mode="local"] .sync-dot{ background:#e8a530; }
+  @keyframes syncPulse{ 0%,100%{opacity:1;} 50%{opacity:.35;} }
+
+  .board{
+    display:grid; grid-template-columns:repeat(4, minmax(280px, 1fr)); gap:22px;
+    padding:32px 40px; min-height:calc(100vh - 90px);
+  }
+  .board-col{display:flex; flex-direction:column; min-width:0;}
+  .board-col-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding-bottom:14px; margin-bottom:16px; border-bottom:2px solid var(--border-strong);
+  }
+  .board-col-head h2{font-family:'Unbounded', sans-serif; font-weight:700; font-size:15px; color:var(--cream); letter-spacing:-.01em;}
+  .col-count{
+    font-family:'Space Mono', monospace; font-size:12px; color:var(--bg); background:var(--gray);
+    padding:3px 10px; border-radius:999px; font-weight:700;
+  }
+  .board-col[data-status="Pending"] .col-count{background:var(--orange); }
+  .board-col[data-status="Preparing"] .col-count{background:#4fa3e8;}
+  .board-col[data-status="Ready"] .col-count{background:#3fca6a;}
+  .board-col[data-status="Completed"] .col-count{background:var(--gray-dim);}
+
+  .card-list{display:flex; flex-direction:column; gap:14px; flex:1;}
+  .order-card{
+    background: linear-gradient(160deg, #1c1410, #140f0c 70%);
+    border:1px solid var(--border-strong); border-radius:14px; padding:18px;
+    animation: cardIn .3s ease;
+  }
+  @keyframes cardIn{ from{opacity:0; transform:translateY(-8px);} to{opacity:1; transform:translateY(0);} }
+  .order-card-top{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;}
+  .order-id{font-family:'Space Mono', monospace; font-weight:700; font-size:13px; color:var(--orange-2);}
+  .order-time{font-family:'Space Mono', monospace; font-size:11px; color:var(--gray-dim);}
+  .order-customer{
+    font-family:'Space Mono', monospace; font-size:11.5px; letter-spacing:0.06em; color:var(--gray);
+    background:rgba(244,239,230,0.05); border:1px solid var(--border-strong);
+    padding:3px 9px; border-radius:6px; display:inline-block; margin-bottom:10px;
+  }
+  .order-items{list-style:none; margin-bottom:10px;}
+  .order-items li{
+    display:flex; justify-content:space-between; font-size:13.5px; color:var(--cream); padding:4px 0;
+  }
+  .order-items li .qty{color:var(--orange-2); font-family:'Space Mono', monospace; margin-right:8px;}
+  .order-notes{
+    font-size:12.5px; color:var(--gray); background:rgba(232,129,58,0.06); border:1px solid rgba(232,129,58,0.18);
+    border-radius:8px; padding:8px 10px; margin-bottom:12px; line-height:1.4;
+  }
+  .order-bottom{display:flex; justify-content:space-between; align-items:center;}
+  .order-total{font-family:'Space Mono', monospace; font-weight:700; font-size:15px; color:var(--cream);}
+  .action-btn{
+    font-family:'Space Mono', monospace; font-size:11.5px; letter-spacing:0.08em; font-weight:700;
+    padding:9px 16px; border-radius:999px; border:none; cursor:pointer;
+    background: linear-gradient(180deg, var(--orange-2), var(--orange)); color:#1a0f04;
+    transition: transform .15s ease;
+  }
+  .action-btn:hover{transform:translateY(-1px);}
+  .empty-col{
+    color:var(--gray-dim); font-family:'Space Mono', monospace; font-size:12px; text-align:center;
+    padding:30px 10px; border:1px dashed var(--border-strong); border-radius:12px;
+  }
+  @media (max-width:1100px){ .board{grid-template-columns:1fr 1fr; gap:16px;} }
+  @media (max-width:640px){
+    .board{grid-template-columns:1fr; padding:16px; gap:20px; min-height:auto;}
+    .kitchen-header{padding:16px 18px; flex-direction:row; flex-wrap:wrap; gap:8px; align-items:center; justify-content:space-between;}
+    .kitchen-brand h1{font-size:19px;}
+    .order-card{padding:15px;}
+    .action-btn{width:100%; padding:12px 16px;}
+    .order-bottom{flex-direction:column; align-items:stretch; gap:12px;}
+    .order-bottom .order-total{text-align:center;}
+  }
+  @media (hover:none){ .action-btn:active{ transform:scale(0.96); } }
+  @media (max-width:640px){ .header-meta{ width:100%; justify-content:space-between; } }
+</style>
+</head>
+<body>
+
+<header class="kitchen-header">
+  <div class="kitchen-brand">
+    <h1>OVERDOSE<span>KITCHEN DASHBOARD</span></h1>
+  </div>
+  <div class="header-meta">
+    <div class="sync-pill" id="sync-pill" data-mode="connecting">
+      <span class="sync-dot"></span>
+      <span id="sync-label">CONNECTING…</span>
+    </div>
+    <div class="kitchen-clock"><span class="dot"></span><span id="live-clock">--:--</span></div>
+  </div>
+</header>
+
+<main class="board" id="board"></main>
+
+<script src="../js/utils.js"></script>
+<script type="module" src="../js/firebase.js"></script>
+<script>
+  const ORDERS_KEY = 'overdose_orders';
+  const STATUS_FLOW = ['Pending', 'Preparing', 'Ready', 'Completed'];
+  const NEXT_STATUS = { Pending: 'Preparing', Preparing: 'Ready', Ready: 'Completed' };
+  const ACTION_LABEL = { Pending: 'ACCEPT', Preparing: 'READY', Ready: 'COMPLETE' };
+
+  let lastOrdersSnapshot = '';
+  let latestOrders = [];
+
+  // 'connecting' -> 'live' (true cross-device sync via Firestore) or
+  // 'local' (this browser's localStorage only - orders placed on other
+  // devices, like a customer's phone, won't show up here).
+  let ordersMode = 'connecting';
+
+  function getOrders(){
+    return readStorage(ORDERS_KEY, []);
+  }
+
+  function saveOrders(orders){
+    writeStorage(ORDERS_KEY, orders);
+  }
+
+  function setSyncStatus(mode){
+    ordersMode = mode;
+    const pill = document.getElementById('sync-pill');
+    const label = document.getElementById('sync-label');
+    if(!pill || !label) return;
+    pill.dataset.mode = mode;
+    if(mode === 'live') label.textContent = 'LIVE SYNC · ALL DEVICES';
+    else if(mode === 'local') label.textContent = 'LOCAL DEVICE ONLY';
+    else label.textContent = 'CONNECTING…';
+  }
+
+  function setOrders(orders){
+    latestOrders = orders || [];
+    renderBoard();
+  }
+
+  function advanceOrder(orderId){
+    const order = latestOrders.find(o => o.orderId === orderId);
+    if(!order) return;
+    const next = NEXT_STATUS[order.status];
+    if(!next) return;
+
+    if(ordersMode === 'live' && order.docId && window.OverdoseFirebase){
+      // The live onSnapshot listener will push the updated order straight
+      // back to setOrders() once Firestore confirms the write, so there's
+      // no need to mutate/re-render locally here.
+      window.OverdoseFirebase.updateOrderStatus(order.docId, next).catch(err => {
+        console.warn('Kitchen: failed to update order status in Firestore:', err.message);
+      });
+      return;
+    }
+
+    const orders = getOrders();
+    const localOrder = orders.find(o => o.orderId === orderId);
+    if(localOrder) localOrder.status = next;
+    saveOrders(orders);
+    setOrders(orders);
+  }
+
+  function buildOrderCardInner(order){
+    const itemsHtml = order.items.map(item => `<li><span><span class="qty">${item.qty}×</span>${item.name}</span><span>${formatPrice(item.price * item.qty)}</span></li>`).join('');
+    const notesHtml = order.notes ? `<div class="order-notes">${order.notes}</div>` : '';
+    const actionLabel = ACTION_LABEL[order.status];
+    const actionHtml = actionLabel
+      ? `<button class="action-btn" onclick="advanceOrder('${order.orderId}')">${actionLabel}</button>`
+      : '';
+
+    return `
+      <div class="order-card-top">
+        <span class="order-id">${order.orderId}</span>
+        <span class="order-time">${formatTime(order.createdAt)}</span>
+      </div>
+      <div class="order-customer">${order.customerName}</div>
+      <ul class="order-items">${itemsHtml}</ul>
+      ${notesHtml}
+      <div class="order-bottom">
+        <span class="order-total">${formatPrice(order.total)}</span>
+        ${actionHtml}
+      </div>
+    `;
+  }
+
+  function buildBoardShell(){
+    const board = document.getElementById('board');
+    board.innerHTML = STATUS_FLOW.map(status => `
+      <section class="board-col" data-status="${status}">
+        <div class="board-col-head">
+          <h2>${status}</h2>
+          <span class="col-count">0</span>
+        </div>
+        <div class="card-list"></div>
+      </section>
+    `).join('');
+  }
+
+  // Reconciles the DOM for one column against the latest order list instead
+  // of replacing innerHTML wholesale. Cards that are unchanged keep their
+  // existing DOM node (no re-render, no replayed animation, no flicker);
+  // only genuinely new cards are created, and only cards that left this
+  // column (status moved on, or order completed) are removed.
+  function renderColumn(status, orders){
+    const column = document.querySelector(`.board-col[data-status="${status}"]`);
+    const listEl = column.querySelector('.card-list');
+    const countEl = column.querySelector('.col-count');
+
+    const columnOrders = orders
+      .filter(o => o.status === status)
+      .sort((a, b) => toJsDate(a.createdAt) - toJsDate(b.createdAt));
+
+    countEl.textContent = columnOrders.length;
+
+    if(!columnOrders.length){
+      if(!listEl.querySelector('.empty-col')){
+        listEl.innerHTML = `<div class="empty-col">No orders</div>`;
+      }
+      return;
+    }
+
+    const emptyEl = listEl.querySelector('.empty-col');
+    if(emptyEl) emptyEl.remove();
+
+    const existingEls = new Map();
+    listEl.querySelectorAll('.order-card').forEach(el => existingEls.set(el.dataset.orderId, el));
+
+    let prevEl = null;
+    columnOrders.forEach(order => {
+      let el = existingEls.get(order.orderId);
+      if(el){
+        existingEls.delete(order.orderId);
+      }else{
+        el = document.createElement('div');
+        el.className = 'order-card';
+        el.dataset.orderId = order.orderId;
+        el.innerHTML = buildOrderCardInner(order);
+      }
+
+      const expectedNext = prevEl ? prevEl.nextElementSibling : listEl.firstElementChild;
+      if(expectedNext !== el){
+        listEl.insertBefore(el, expectedNext);
+      }
+      prevEl = el;
+    });
+
+    // Anything left in existingEls is no longer in this column - remove it.
+    existingEls.forEach(el => el.remove());
+  }
+
+  function renderBoard(){
+    const snapshot = JSON.stringify(latestOrders);
+    if(snapshot === lastOrdersSnapshot) return;
+    lastOrdersSnapshot = snapshot;
+    STATUS_FLOW.forEach(status => renderColumn(status, latestOrders));
+  }
+
+  function updateClock(){
+    document.getElementById('live-clock').textContent = formatTime(new Date());
+  }
+
+  // Same-device fallback: other tabs on this browser (e.g. an admin tab)
+  // writing to localStorage. This never fires for a different physical
+  // device - that's exactly the gap Firestore live sync closes below.
+  window.addEventListener('storage', (e) => {
+    if(e.key === ORDERS_KEY && ordersMode === 'local') setOrders(getOrders());
+  });
+
+  async function initOrdersFeed(){
+    if(!window.OverdoseFirebase || typeof window.OverdoseFirebase.listenForOrders !== 'function'){
+      setSyncStatus('local');
+      setOrders(getOrders());
+      return;
+    }
+    try{
+      await window.OverdoseFirebase.listenForOrders(
+        (orders) => {
+          setSyncStatus('live');
+          setOrders(orders);
+        },
+        (err) => {
+          console.warn('Kitchen: Firestore sync unavailable, showing this device\'s orders only. Fix by adding real project credentials to js/firebase.js.', err && err.message);
+          setSyncStatus('local');
+          setOrders(getOrders());
+          startLocalPolling();
+        }
+      );
+    }catch(err){
+      console.warn('Kitchen: could not reach Firestore, showing this device\'s orders only. Fix by adding real project credentials to js/firebase.js.', err && err.message);
+      setSyncStatus('local');
+      setOrders(getOrders());
+      startLocalPolling();
+    }
+  }
+
+  let localPollTimer = null;
+  function startLocalPolling(){
+    if(localPollTimer) return;
+    localPollTimer = setInterval(() => {
+      if(ordersMode === 'local') setOrders(getOrders());
+    }, 2000);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    buildBoardShell();
+    setInterval(updateClock, 1000);
+    updateClock();
+    initOrdersFeed();
+  });
+</script>
+</body>
+</html>

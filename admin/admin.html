@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#050403">
+<title>overdose — Admin Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+  .admin-wrap{ max-width:1560px; margin-inline:auto; padding:clamp(20px,3vw,34px) var(--gut) 90px; display:flex; flex-direction:column; gap:clamp(16px,2vw,26px); }
+
+  /* ===== KPI GRID ===== */
+  .kpi-grid{ display:grid; grid-template-columns:repeat(5,1fr); gap:clamp(10px,1.2vw,16px); }
+  .kpi{
+    position:relative; overflow:hidden; padding:clamp(16px,1.8vw,22px); border-radius:18px;
+    border:1px solid var(--border); background:rgba(247,242,232,.032);
+    backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+    animation:kpiIn .55s cubic-bezier(.16,1,.3,1) both;
+    transition:border-color .3s, transform .3s cubic-bezier(.16,1,.3,1);
+  }
+  .kpi:hover{ border-color:rgba(255,106,26,.4); transform:translateY(-3px); }
+  .kpi:nth-child(1){ animation-delay:.02s } .kpi:nth-child(2){ animation-delay:.07s }
+  .kpi:nth-child(3){ animation-delay:.12s } .kpi:nth-child(4){ animation-delay:.17s }
+  .kpi:nth-child(5){ animation-delay:.22s }
+  @keyframes kpiIn{ from{ opacity:0; transform:translateY(16px) } to{ opacity:1; transform:none } }
+  .kpi .k{ font-family:'Space Mono',monospace; font-size:8.5px; letter-spacing:.22em; color:var(--gray-dim); text-transform:uppercase; }
+  .kpi .v{ font-family:'Unbounded',sans-serif; font-weight:800; font-size:clamp(22px,2.6vw,34px); letter-spacing:-.045em; margin-top:10px; line-height:1; }
+  .kpi .v.accent{ background:var(--grad); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .kpi .spark{ margin-top:12px; height:26px; width:100%; display:block; }
+  .kpi::after{ content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--orange),transparent); opacity:0; transition:opacity .3s; }
+  .kpi:hover::after{ opacity:1; }
+  @media (max-width:1150px){ .kpi-grid{ grid-template-columns:repeat(3,1fr); } }
+  @media (max-width:620px){ .kpi-grid{ grid-template-columns:1fr 1fr; } }
+
+  /* ===== TWO COLUMN ===== */
+  .split{ display:grid; grid-template-columns:1.15fr .85fr; gap:clamp(16px,2vw,26px); align-items:start; }
+  @media (max-width:1000px){ .split{ grid-template-columns:1fr; } }
+
+  /* ===== REVENUE CHART ===== */
+  #revenue-chart{ width:100%; height:210px; display:block; }
+  .chart-legend{
+    display:flex; gap:16px; flex-wrap:wrap; margin-top:12px;
+    font-family:'Space Mono',monospace; font-size:9px; letter-spacing:.16em; color:var(--gray-dim); text-transform:uppercase;
+  }
+  .chart-legend i{ display:inline-block; width:9px; height:9px; border-radius:3px; margin-right:7px; vertical-align:-1px; }
+
+  /* ===== POPULAR ===== */
+  .popular-list{ display:flex; flex-direction:column; gap:12px; }
+  .popular-row{ display:flex; align-items:center; gap:13px; }
+  .popular-rank{
+    width:26px; height:26px; border-radius:8px; flex-shrink:0; display:grid; place-items:center;
+    background:rgba(255,106,26,.12); border:1px solid rgba(255,106,26,.25); color:var(--orange-2);
+    font-family:'Space Mono',monospace; font-weight:700; font-size:11px;
+  }
+  .popular-row:first-child .popular-rank{ background:var(--grad); color:#160a03; border-color:transparent; }
+  .popular-name{ flex:1; font-size:13.5px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .popular-bar-track{ flex:1.6; height:7px; border-radius:999px; background:rgba(247,242,232,.07); overflow:hidden; }
+  .popular-bar-fill{ height:100%; width:0; border-radius:999px; background:var(--grad); transition:width .8s cubic-bezier(.16,1,.3,1); }
+  .popular-count{ width:66px; text-align:right; font-family:'Space Mono',monospace; font-size:11px; color:var(--gray-dim); }
+
+  /* ===== MENU FORM ===== */
+  .menu-form{ display:grid; grid-template-columns:repeat(6,1fr); gap:10px; align-items:end; margin-bottom:22px; }
+  .menu-form .field{ display:flex; flex-direction:column; gap:6px; min-width:0; }
+  .menu-form label{ font-family:'Space Mono',monospace; font-size:8.5px; letter-spacing:.18em; color:var(--gray-dim); text-transform:uppercase; }
+  .menu-form input, .menu-form select{
+    width:100%; padding:11px 12px; border-radius:10px; color:var(--ink);
+    background:rgba(247,242,232,.03); border:1px solid var(--border-strong);
+    font-family:'Inter',sans-serif; font-size:13px;
+    transition:border-color .2s, background .2s, box-shadow .2s;
+  }
+  .menu-form input:focus, .menu-form select:focus{
+    outline:none; border-color:var(--orange); background:rgba(255,106,26,.06); box-shadow:0 0 0 3px rgba(255,106,26,.1);
+  }
+  .menu-form select option{ background:#120c08; }
+  .add-item-btn{
+    padding:12px 16px; border-radius:10px; border:none; cursor:pointer;
+    font-family:'Space Mono',monospace; font-weight:700; font-size:10.5px; letter-spacing:.14em;
+    background:var(--grad); color:#16090b; box-shadow:0 8px 22px rgba(255,31,79,.25);
+    transition:transform .18s cubic-bezier(.34,1.56,.64,1);
+  }
+  .add-item-btn:hover{ transform:translateY(-2px); }
+  @media (max-width:1150px){ .menu-form{ grid-template-columns:repeat(3,1fr); } }
+  @media (max-width:640px){ .menu-form{ grid-template-columns:1fr; } .add-item-btn{ width:100%; padding:14px; } }
+
+  /* ===== TABLE ===== */
+  .table-scroll{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .table-scroll::-webkit-scrollbar{ height:5px; }
+  .table-scroll::-webkit-scrollbar-thumb{ background:var(--border-strong); border-radius:999px; }
+  table{ width:100%; border-collapse:collapse; min-width:640px; }
+  thead th{
+    position:sticky; top:0; text-align:left; padding:10px 12px; white-space:nowrap;
+    font-family:'Space Mono',monospace; font-size:9px; letter-spacing:.2em; color:var(--gray-dim); text-transform:uppercase;
+    border-bottom:1px solid var(--border-strong); background:rgba(14,10,7,.9); backdrop-filter:blur(10px);
+  }
+  tbody td{ padding:12px; border-bottom:1px solid var(--hair); font-size:13.5px; vertical-align:middle; }
+  tbody tr{ transition:background .2s; }
+  tbody tr:hover{ background:rgba(247,242,232,.03); }
+  tbody tr.out-of-stock td{ opacity:.45; }
+  .cell-name{ display:flex; flex-direction:column; gap:4px; }
+  .cell-name b{ font-family:'Unbounded',sans-serif; font-weight:700; font-size:13.5px; letter-spacing:-.02em; }
+  .cell-name span{ font-family:'Space Mono',monospace; font-size:8.5px; letter-spacing:.18em; color:var(--gray-dim); }
+  .cat-pill{
+    font-family:'Space Mono',monospace; font-size:9px; letter-spacing:.12em; white-space:nowrap;
+    padding:4px 10px; border-radius:999px; border:1px solid var(--border-strong); color:var(--gray);
+  }
+  .cat-pill.hot{ color:var(--orange-2); border-color:rgba(255,176,32,.35); background:rgba(255,176,32,.07); }
+  .cat-pill.shake{ color:var(--cyan); border-color:rgba(33,231,255,.3); background:rgba(33,231,255,.06); }
+  .price-input{
+    width:88px; padding:7px 10px; border-radius:8px; color:var(--ink);
+    background:rgba(247,242,232,.03); border:1px solid var(--border-strong);
+    font-family:'Space Mono',monospace; font-size:12.5px;
+  }
+  .price-input:focus{ outline:none; border-color:var(--orange); background:rgba(255,106,26,.06); }
+  .status-dot{ display:inline-flex; align-items:center; gap:8px; font-family:'Space Mono',monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase; }
+  .status-dot i{ width:7px; height:7px; border-radius:50%; background:var(--green); box-shadow:0 0 8px rgba(53,224,138,.7); }
+  .status-dot.off{ color:var(--gray-dim); }
+  .status-dot.off i{ background:var(--gray-dim); box-shadow:none; }
+  .row-actions{ display:flex; gap:8px; }
+</style>
+</head>
+<body>
+
+<canvas id="od-field" aria-hidden="true"></canvas>
+<div class="od-aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+<div class="od-vignette" aria-hidden="true"></div>
+<div class="od-scan" aria-hidden="true"></div>
+<div class="od-grain" aria-hidden="true"></div>
+
+<div class="od-hud" aria-hidden="true">
+  <span class="corner tl"></span><span class="corner tr"></span>
+  <span class="corner bl"></span><span class="corner br"></span>
+  <span class="rail l">ADMIN CONSOLE · ROOT</span>
+  <span class="rail r">MENU + REVENUE CONTROL</span>
+</div>
+
+<div id="od-cursor" aria-hidden="true">
+  <span class="cur-ring"></span><span class="cur-dot"></span><span class="cur-label"></span>
+</div>
+
+<header class="console-head">
+  <div class="console-title">
+    <a href="../index.html" class="logo-badge" aria-label="Back to the storefront">
+      <span class="txt">OVER<br>DOSE<span class="rule"></span></span>
+    </a>
+    <h1>OVERDOSE<span>ADMIN CONSOLE</span></h1>
+  </div>
+  <div class="console-meta">
+    <div class="sync-pill" id="sync-pill" data-mode="connecting">
+      <span class="sync-dot"></span><span id="sync-label">CONNECTING…</span>
+    </div>
+    <div class="clock-pill"><i></i><span data-clock>--:--:--</span></div>
+    <button class="kbd-btn" data-open-palette><span>COMMAND</span><kbd>⌘K</kbd></button>
+  </div>
+</header>
+
+<main class="admin-wrap">
+
+  <div class="kpi-grid" id="kpi-grid"></div>
+
+  <div class="split">
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Revenue · last 7 days</h2>
+        <span class="ph-note" id="rev-note">—</span>
+      </div>
+      <canvas id="revenue-chart"></canvas>
+      <div class="chart-legend">
+        <span><i style="background:linear-gradient(112deg,#ff6a1a,#ff1f4f)"></i>DAILY REVENUE</span>
+        <span><i style="background:#c6ff3a"></i>ORDER COUNT</span>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Popular items</h2>
+        <span class="ph-note">BY UNITS SOLD</span>
+      </div>
+      <div class="popular-list" id="popular-list"></div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Menu management</h2>
+      <span class="ph-note" id="menu-note">—</span>
+    </div>
+
+    <div class="menu-form">
+      <div class="field"><label>Name</label><input type="text" id="new-item-name" placeholder="Item name"></div>
+      <div class="field"><label>Category</label>
+        <select id="new-item-category">
+          <option value="hot">Hot Brews</option>
+          <option value="shake">Thickshakes</option>
+        </select>
+      </div>
+      <div class="field"><label>Price (₹)</label><input type="number" id="new-item-price" placeholder="0" min="0"></div>
+      <div class="field"><label>Description</label><input type="text" id="new-item-desc" placeholder="Short description"></div>
+      <div class="field"><label>Tags</label><input type="text" id="new-item-tags" placeholder="HOT, CONTAINS DAIRY"></div>
+      <button class="add-item-btn" id="add-item-btn">+ ADD ITEM</button>
+    </div>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>Item</th><th>Category</th><th>Price</th><th>Status</th><th>Actions</th></tr>
+        </thead>
+        <tbody id="menu-table-body"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<!-- COMMAND PALETTE -->
+<div id="od-palette" aria-hidden="true">
+  <div class="pal-box" role="dialog" aria-label="Command palette">
+    <div class="pal-top">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 17l6-6-6-6"/><path d="M12 19h8"/></svg>
+      <input type="text" placeholder="Type a command…" aria-label="Command">
+      <span class="esc">ESC</span>
+    </div>
+    <div class="pal-list"></div>
+    <div class="pal-foot"><span>↑↓ NAVIGATE</span><span>↵ RUN</span><span>⌘K TOGGLE</span></div>
+  </div>
+</div>
+
+<script src="../js/fx.js"></script>
+<script src="../js/utils.js"></script>
+<script src="../js/menu.js"></script>
+<script type="module" src="../js/firebase.js"></script>
+<script>
+  const ORDERS_KEY = 'overdose_orders';
+
+  let latestOrders = [];
+  let ordersMode = 'connecting';   // 'connecting' -> 'live' | 'local'
+
+  function getOrders(){ return readStorage(ORDERS_KEY, []); }
+
+  function setSyncStatus(mode){
+    ordersMode = mode;
+    const pill = document.getElementById('sync-pill');
+    const label = document.getElementById('sync-label');
+    if(!pill || !label) return;
+    pill.dataset.mode = mode;
+    label.textContent = mode === 'live' ? 'LIVE SYNC · ALL DEVICES'
+                      : mode === 'local' ? 'LOCAL DEVICE ONLY'
+                      : 'CONNECTING…';
+  }
+
+  function setOrders(orders){
+    latestOrders = orders || [];
+    renderKpis();
+    renderPopularItems();
+    renderRevenueChart();
+  }
+
+  /* ================= KPIs ================= */
+  function renderKpis(){
+    const orders = latestOrders;
+    const today = orders.filter(o => isSameDay(o.createdAt));
+    const revenueToday = today.reduce((s, o) => s + (o.total || 0), 0);
+    const revenueAll = orders.reduce((s, o) => s + (o.total || 0), 0);
+    const open = orders.filter(o => o.status !== 'Completed').length;
+    const avg = orders.length ? Math.round(revenueAll / orders.length) : 0;
+
+    const cards = [
+      { k:"TODAY'S ORDERS", v: today.length },
+      { k:'REVENUE (TODAY)', v: formatPrice(revenueToday), accent:true },
+      { k:'OPEN TICKETS', v: open },
+      { k:'AVG ORDER VALUE', v: formatPrice(avg) },
+      { k:'TOTAL ORDERS', v: orders.length }
+    ];
+
+    document.getElementById('kpi-grid').innerHTML = cards.map(c => `
+      <div class="kpi">
+        <div class="k">${c.k}</div>
+        <div class="v${c.accent ? ' accent' : ''}">${c.v}</div>
+      </div>`).join('');
+  }
+
+  /* ================= POPULAR ================= */
+  function renderPopularItems(){
+    const tally = {};
+    latestOrders.forEach(order => {
+      (order.items || []).forEach(item => {
+        tally[item.name] = (tally[item.name] || 0) + item.qty;
+      });
+    });
+    const ranked = Object.entries(tally).sort((a, b) => b[1] - a[1]).slice(0, 6);
+    const container = document.getElementById('popular-list');
+
+    if(!ranked.length){
+      container.innerHTML = `<div class="empty-note">No orders yet — popular items appear once orders come in</div>`;
+      return;
+    }
+    const max = ranked[0][1];
+    container.innerHTML = ranked.map(([name, count], i) => `
+      <div class="popular-row">
+        <span class="popular-rank">${i + 1}</span>
+        <span class="popular-name">${escapeHtml(name)}</span>
+        <div class="popular-bar-track"><div class="popular-bar-fill" data-w="${(count / max) * 100}"></div></div>
+        <span class="popular-count">${count} sold</span>
+      </div>`).join('');
+
+    requestAnimationFrame(() => {
+      container.querySelectorAll('.popular-bar-fill').forEach(el => { el.style.width = el.dataset.w + '%'; });
+    });
+  }
+
+  /* ================= REVENUE CHART =================
+     Hand-drawn on canvas so the console stays dependency-free. */
+  function last7Days(){
+    const days = [];
+    for(let i = 6; i >= 0; i--){
+      const d = new Date();
+      d.setHours(0, 0, 0, 0);
+      d.setDate(d.getDate() - i);
+      days.push(d);
+    }
+    return days;
+  }
+
+  function renderRevenueChart(){
+    const canvas = document.getElementById('revenue-chart');
+    if(!canvas) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = canvas.clientWidth || 600;
+    const h = 210;
+    canvas.width = w * dpr; canvas.height = h * dpr;
+    canvas.style.height = h + 'px';
+    const ctx = canvas.getContext('2d');
+    if(!ctx) return;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+
+    const days = last7Days();
+    const buckets = days.map(day => {
+      const dayOrders = latestOrders.filter(o => isSameDay(o.createdAt, day));
+      return { day, revenue: dayOrders.reduce((s, o) => s + (o.total || 0), 0), count: dayOrders.length };
+    });
+    const maxRev = Math.max(100, ...buckets.map(b => b.revenue));
+    const maxCount = Math.max(1, ...buckets.map(b => b.count));
+
+    const padL = 8, padR = 8, padT = 14, padB = 30;
+    const plotW = w - padL - padR;
+    const plotH = h - padT - padB;
+    const step = plotW / buckets.length;
+    const barW = Math.min(38, step * 0.46);
+
+    // grid
+    ctx.strokeStyle = 'rgba(247,242,232,0.06)';
+    ctx.lineWidth = 1;
+    for(let i = 0; i <= 3; i++){
+      const y = padT + (plotH / 3) * i;
+      ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(w - padR, y); ctx.stroke();
+    }
+
+    // bars
+    buckets.forEach((b, i) => {
+      const x = padL + step * i + (step - barW) / 2;
+      const bh = maxRev ? (b.revenue / maxRev) * plotH : 0;
+      const y = padT + plotH - bh;
+
+      const g = ctx.createLinearGradient(0, y, 0, padT + plotH);
+      g.addColorStop(0, '#ff1f4f');
+      g.addColorStop(1, 'rgba(255,106,26,0.25)');
+      ctx.fillStyle = g;
+
+      const r = Math.min(6, barW / 2);
+      ctx.beginPath();
+      if(bh > r){
+        ctx.moveTo(x, padT + plotH);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.lineTo(x + barW - r, y);
+        ctx.quadraticCurveTo(x + barW, y, x + barW, y + r);
+        ctx.lineTo(x + barW, padT + plotH);
+      }else{
+        ctx.rect(x, padT + plotH - 2, barW, 2);
+      }
+      ctx.closePath(); ctx.fill();
+
+      // day label
+      ctx.fillStyle = 'rgba(164,154,142,0.65)';
+      ctx.font = '9px "Space Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(b.day.toLocaleDateString('en-IN', { weekday: 'short' }).toUpperCase(), x + barW / 2, h - 12);
+    });
+
+    // order-count line
+    ctx.strokeStyle = '#c6ff3a';
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    buckets.forEach((b, i) => {
+      const x = padL + step * i + step / 2;
+      const y = padT + plotH - (b.count / maxCount) * plotH * 0.82;
+      i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+    });
+    ctx.stroke();
+    buckets.forEach((b, i) => {
+      const x = padL + step * i + step / 2;
+      const y = padT + plotH - (b.count / maxCount) * plotH * 0.82;
+      ctx.fillStyle = '#c6ff3a';
+      ctx.beginPath(); ctx.arc(x, y, 2.6, 0, Math.PI * 2); ctx.fill();
+    });
+
+    const weekTotal = buckets.reduce((s, b) => s + b.revenue, 0);
+    document.getElementById('rev-note').textContent = formatPrice(weekTotal) + ' · 7 DAYS';
+  }
+  window.addEventListener('resize', () => renderRevenueChart());
+
+  /* ================= MENU TABLE ================= */
+  function renderMenuTable(){
+    const menu = getMenu();
+    const tbody = document.getElementById('menu-table-body');
+    const note = document.getElementById('menu-note');
+    if(note) note.textContent = menu.length + ' ITEMS · ' + menu.filter(m => m.outOfStock).length + ' OUT OF STOCK';
+
+    if(!menu.length){
+      tbody.innerHTML = `<tr><td colspan="5"><div class="empty-note">No menu items</div></td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = menu.map(item => `
+      <tr class="${item.outOfStock ? 'out-of-stock' : ''}" data-id="${item.id}">
+        <td>
+          <div class="cell-name">
+            <b>${escapeHtml(item.name)}</b>
+            <span>${skuFor(item)}</span>
+          </div>
+        </td>
+        <td><span class="cat-pill ${item.category}">${item.category === 'hot' ? 'Hot Brews' : 'Thickshakes'}</span></td>
+        <td><input type="number" class="price-input" data-id="${item.id}" value="${item.price}" min="0"></td>
+        <td>
+          <span class="status-dot${item.outOfStock ? ' off' : ''}"><i></i>${item.outOfStock ? 'Out of stock' : 'In stock'}</span>
+        </td>
+        <td>
+          <div class="row-actions">
+            <button class="mini-btn${item.outOfStock ? ' ok' : ''}" data-action="toggle-stock" data-id="${item.id}">${item.outOfStock ? 'RESTOCK' : 'MARK OUT'}</button>
+            <button class="mini-btn danger" data-action="remove-item" data-id="${item.id}">REMOVE</button>
+          </div>
+        </td>
+      </tr>`).join('');
+
+    tbody.querySelectorAll('.price-input').forEach(input => {
+      input.addEventListener('change', () => {
+        const price = Number(input.value);
+        if(price >= 0){
+          updateMenuItem(Number(input.dataset.id), { price });
+          renderMenuTable();
+          showToast('Price updated', 'ok');
+        }
+      });
+    });
+    tbody.querySelectorAll('[data-action="toggle-stock"]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = Number(btn.dataset.id);
+        const item = findMenuItem(id);
+        updateMenuItem(id, { outOfStock: !item.outOfStock });
+        renderMenuTable();
+        showToast(item.outOfStock ? item.name + ' restocked' : item.name + ' marked out', item.outOfStock ? 'ok' : 'warn');
+      });
+    });
+    tbody.querySelectorAll('[data-action="remove-item"]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = Number(btn.dataset.id);
+        const item = findMenuItem(id);
+        removeMenuItem(id);
+        renderMenuTable();
+        showToast((item ? item.name : 'Item') + ' removed', 'err');
+      });
+    });
+  }
+
+  function handleAddItem(){
+    const name = document.getElementById('new-item-name').value.trim();
+    const category = document.getElementById('new-item-category').value;
+    const price = Number(document.getElementById('new-item-price').value);
+    const description = document.getElementById('new-item-desc').value.trim();
+    const tagsRaw = document.getElementById('new-item-tags').value.trim();
+    const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim().toUpperCase()).filter(Boolean) : [];
+
+    if(!name || !price || price <= 0){
+      showToast('Name and a price above zero are required', 'warn');
+      return;
+    }
+
+    addMenuItem({ name, category, price, description, tags });
+    ['new-item-name','new-item-price','new-item-desc','new-item-tags'].forEach(id => { document.getElementById(id).value = ''; });
+    renderMenuTable();
+    showToast(name + ' added to the menu', 'ok');
+    if(window.OD && OD.energy) OD.energy(0.8);
+  }
+
+  document.getElementById('add-item-btn').addEventListener('click', handleAddItem);
+
+  window.OD_COMMANDS = [
+    { icon:'⌂', label:'Back to storefront', hint:'NAV', run:() => location.href = '../index.html' },
+    { icon:'⚙', label:'Kitchen ops deck', hint:'NAV', run:() => location.href = '../kitchen/kitchen.html' },
+    { icon:'↻', label:'Force refresh', hint:'ACTION', run:() => location.reload() },
+    { icon:'⟲', label:'Reset menu to defaults', hint:'DANGER', keywords:'reset default menu', run:() => {
+        saveMenu(defaultMenu.map(i => Object.assign({}, i)));
+        renderMenuTable();
+        showToast('Menu reset to defaults', 'warn');
+      } }
+  ];
+
+  window.addEventListener('storage', (e) => {
+    if(e.key === ORDERS_KEY && ordersMode === 'local') setOrders(getOrders());
+    if(e.key === MENU_STORAGE_KEY) renderMenuTable();
+  });
+
+  async function initOrdersFeed(){
+    if(!window.OverdoseFirebase || typeof window.OverdoseFirebase.listenForOrders !== 'function'){
+      setSyncStatus('local'); setOrders(getOrders()); startLocalPolling(); return;
+    }
+    try{
+      await window.OverdoseFirebase.listenForOrders(
+        (orders) => { setSyncStatus('live'); setOrders(orders); },
+        (err) => {
+          console.warn('Admin: Firestore sync unavailable, local orders only.', err && err.message);
+          setSyncStatus('local'); setOrders(getOrders()); startLocalPolling();
+        }
+      );
+    }catch(err){
+      console.warn('Admin: could not reach Firestore, local orders only.', err && err.message);
+      setSyncStatus('local'); setOrders(getOrders()); startLocalPolling();
+    }
+  }
+
+  let localPollTimer = null;
+  function startLocalPolling(){
+    if(localPollTimer) return;
+    localPollTimer = setInterval(() => { if(ordersMode === 'local') setOrders(getOrders()); }, 3000);
+  }
+
+  function boot(){
+    renderMenuTable();
+    setOrders(getOrders());   // paint immediately, then upgrade to live
+    initOrdersFeed();
+  }
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+</script>
+</body>
+</html>

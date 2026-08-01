@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>overdose — Admin Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+  .admin-header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:24px 40px; border-bottom:1px solid var(--border);
+  }
+  .admin-header h1{font-family:'Unbounded', sans-serif; font-weight:700; font-size:19px; color:var(--cream); letter-spacing:-.01em;}
+  .admin-header span{
+    display:block; font-family:'Space Mono', monospace; font-size:11.5px; letter-spacing:0.12em; color:var(--orange-2); margin-top:2px;
+  }
+  .sync-pill{
+    display:flex; align-items:center; gap:8px;
+    font-family:'Space Mono', monospace; font-size:10.5px; letter-spacing:0.08em;
+    padding:6px 12px; border-radius:999px; border:1px solid var(--border-strong); color:var(--gray-dim);
+    transition: color .2s ease, border-color .2s ease;
+  }
+  .sync-pill .sync-dot{ width:7px; height:7px; border-radius:50%; background:var(--gray-dim); flex-shrink:0; }
+  .sync-pill[data-mode="connecting"] .sync-dot{ animation: syncPulse 1s ease-in-out infinite; }
+  .sync-pill[data-mode="live"]{ color:#3fca6a; border-color:rgba(63,202,106,0.35); }
+  .sync-pill[data-mode="live"] .sync-dot{ background:#3fca6a; box-shadow:0 0 8px rgba(63,202,106,0.7); animation: syncPulse 1.8s ease-in-out infinite; }
+  .sync-pill[data-mode="local"]{ color:#e8a530; border-color:rgba(232,165,48,0.35); }
+  .sync-pill[data-mode="local"] .sync-dot{ background:#e8a530; }
+  @keyframes syncPulse{ 0%,100%{opacity:1;} 50%{opacity:.35;} }
+  .admin-wrap{max-width:1400px; margin:0 auto; padding:34px 40px 80px;}
+
+  .stat-grid{display:grid; grid-template-columns:repeat(5, 1fr); gap:18px; margin-bottom:44px;}
+  .stat-card{
+    background: linear-gradient(160deg, #1c1410, #140f0c 70%);
+    border:1px solid var(--border-strong); border-radius:16px; padding:22px;
+  }
+  .stat-label{font-family:'Space Mono', monospace; font-size:11px; letter-spacing:0.08em; color:var(--gray-dim); margin-bottom:10px;}
+  .stat-value{font-family:'Unbounded', sans-serif; font-weight:700; font-size:25px; color:var(--cream);}
+  .stat-value.accent{background:var(--grad); -webkit-background-clip:text; background-clip:text; color:transparent;}
+
+  .section-title{
+    font-family:'Unbounded', sans-serif; font-weight:700; font-size:18px; color:var(--cream);
+    margin-bottom:18px; display:flex; align-items:center; justify-content:space-between;
+  }
+  .panel{
+    background: linear-gradient(160deg, #1c1410, #140f0c 70%);
+    border:1px solid var(--border-strong); border-radius:16px; padding:26px; margin-bottom:36px;
+  }
+
+  .popular-list{display:flex; flex-direction:column; gap:12px;}
+  .popular-row{display:flex; align-items:center; gap:14px;}
+  .popular-rank{
+    width:26px; height:26px; border-radius:50%; background:var(--panel-2); color:var(--orange-2);
+    font-family:'Space Mono', monospace; font-weight:700; font-size:12px;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .popular-name{flex:1; font-size:14.5px; color:var(--cream);}
+  .popular-bar-track{flex:2; height:8px; background:var(--panel-2); border-radius:999px; overflow:hidden;}
+  .popular-bar-fill{height:100%; background:linear-gradient(90deg, var(--orange), var(--orange-2)); border-radius:999px;}
+  .popular-count{font-family:'Space Mono', monospace; font-size:12.5px; color:var(--gray); width:70px; text-align:right;}
+
+  .menu-form{display:grid; grid-template-columns:repeat(6, 1fr); gap:12px; align-items:end; margin-bottom:26px;}
+  .menu-form .field{display:flex; flex-direction:column; gap:6px;}
+  .menu-form label{font-family:'Space Mono', monospace; font-size:10.5px; letter-spacing:0.06em; color:var(--gray-dim);}
+  .menu-form input, .menu-form select{
+    background:rgba(244,239,230,0.03); border:1px solid var(--border-strong); border-radius:8px;
+    padding:10px 12px; color:var(--cream); font-family:'Inter',sans-serif; font-size:13.5px;
+  }
+  .menu-form input:focus, .menu-form select:focus{outline:none; border-color:var(--orange);}
+  .add-item-btn{
+    grid-column: span 1; background: linear-gradient(180deg, var(--orange-2), var(--orange));
+    color:#1a0f04; font-weight:700; font-family:'Space Mono', monospace; font-size:12px; letter-spacing:0.06em;
+    border:none; border-radius:8px; padding:11px 14px; cursor:pointer; transition: transform .15s ease;
+  }
+  .add-item-btn:hover{transform:translateY(-1px);}
+
+  table{width:100%; border-collapse:collapse;}
+  thead th{
+    text-align:left; font-family:'Space Mono', monospace; font-size:11px; letter-spacing:0.06em; color:var(--gray-dim);
+    padding:10px 12px; border-bottom:1px solid var(--border-strong);
+  }
+  tbody td{padding:12px; border-bottom:1px solid var(--border); font-size:14px; color:var(--cream); vertical-align:middle;}
+  tbody tr.out-of-stock td{opacity:0.5;}
+  .cat-pill{
+    font-family:'Space Mono', monospace; font-size:10.5px; letter-spacing:0.05em; color:var(--gray);
+    border:1px solid var(--border-strong); padding:3px 9px; border-radius:999px;
+  }
+  .price-input{
+    width:80px; background:rgba(244,239,230,0.03); border:1px solid var(--border-strong); border-radius:6px;
+    padding:6px 9px; color:var(--cream); font-family:'Space Mono', monospace; font-size:13px;
+  }
+  .price-input:focus{outline:none; border-color:var(--orange);}
+  .row-actions{display:flex; gap:8px;}
+  .mini-btn{
+    font-family:'Space Mono', monospace; font-size:10.5px; letter-spacing:0.05em; font-weight:700;
+    padding:7px 12px; border-radius:999px; border:1px solid var(--border-strong); background:transparent;
+    color:var(--cream); cursor:pointer; transition: all .2s;
+  }
+  .mini-btn:hover{border-color:var(--orange); background:rgba(232,129,58,0.08);}
+  .mini-btn.danger:hover{border-color:#d9534f; background:rgba(217,83,79,0.1);}
+  .mini-btn.active-stock{border-color:#3fca6a; color:#3fca6a;}
+  .empty-note{color:var(--gray-dim); font-size:13.5px; padding:20px 0; text-align:center;}
+
+  @media (max-width:1100px){ .stat-grid{grid-template-columns:repeat(2, 1fr);} .menu-form{grid-template-columns:repeat(2, 1fr);} }
+  @media (max-width:640px){
+    .admin-wrap{padding:24px 16px 60px;}
+    .admin-header{padding:16px; flex-direction:row; flex-wrap:wrap; align-items:center; gap:10px;}
+    .stat-grid{grid-template-columns:1fr 1fr; gap:12px; margin-bottom:32px;}
+    .stat-card{padding:16px;}
+    .stat-value{font-size:23px;}
+    .panel{padding:18px; border-radius:14px; margin-bottom:24px;}
+    .menu-form{grid-template-columns:1fr; gap:10px;}
+    .add-item-btn{grid-column:1; width:100%; padding:13px;}
+    .table-scroll{overflow-x:auto; -webkit-overflow-scrolling:touch; margin:0 -18px; padding:0 18px; width:calc(100% + 36px);}
+    table{font-size:12.5px; min-width:560px;}
+    .popular-row{gap:10px;}
+    .popular-name{font-size:13px;}
+  }
+  @media (max-width:380px){ .stat-grid{grid-template-columns:1fr;} }
+
+  @media (hover:none){
+    .mini-btn:active, .add-item-btn:active{ transform:scale(0.95); }
+  }
+
+  .stat-card{ animation: statIn .5s cubic-bezier(.16,1,.3,1) both; }
+  .stat-card:nth-child(1){ animation-delay:.02s; }
+  .stat-card:nth-child(2){ animation-delay:.07s; }
+  .stat-card:nth-child(3){ animation-delay:.12s; }
+  .stat-card:nth-child(4){ animation-delay:.17s; }
+  .stat-card:nth-child(5){ animation-delay:.22s; }
+  @keyframes statIn{ from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:translateY(0);} }
+  tbody tr{ transition: background .2s ease; }
+  tbody tr:hover{ background:rgba(244,239,230,0.03); }
+  .popular-bar-fill{ transition: width .6s cubic-bezier(.16,1,.3,1); }
+  @media (prefers-reduced-motion: reduce){ .stat-card{ animation:none; } }
+</style>
+</head>
+<body>
+
+<header class="admin-header">
+  <div><h1>OVERDOSE<span>ADMIN PANEL</span></h1></div>
+  <div class="sync-pill" id="sync-pill" data-mode="connecting">
+    <span class="sync-dot"></span>
+    <span id="sync-label">CONNECTING…</span>
+  </div>
+</header>
+
+<main class="admin-wrap">
+  <div class="stat-grid" id="stat-grid"></div>
+
+  <div class="panel">
+    <div class="section-title">Popular Items</div>
+    <div class="popular-list" id="popular-list"></div>
+  </div>
+
+  <div class="panel">
+    <div class="section-title">Menu Management</div>
+    <div class="menu-form">
+      <div class="field"><label>NAME</label><input type="text" id="new-item-name" placeholder="Item name"></div>
+      <div class="field"><label>CATEGORY</label>
+        <select id="new-item-category">
+          <option value="hot">Hot Brews</option>
+          <option value="shake">Thickshakes</option>
+        </select>
+      </div>
+      <div class="field"><label>PRICE (₹)</label><input type="number" id="new-item-price" placeholder="0" min="0"></div>
+      <div class="field"><label>DESCRIPTION</label><input type="text" id="new-item-desc" placeholder="Short description"></div>
+      <div class="field"><label>TAGS</label><input type="text" id="new-item-tags" placeholder="HOT, CONTAINS DAIRY"></div>
+      <button class="add-item-btn" id="add-item-btn">+ ADD ITEM</button>
+    </div>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>Item</th><th>Category</th><th>Price</th><th>Status</th><th>Actions</th></tr>
+        </thead>
+        <tbody id="menu-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script src="../js/utils.js"></script>
+<script src="../js/menu.js"></script>
+<script type="module" src="../js/firebase.js"></script>
+<script>
+  const ORDERS_KEY = 'overdose_orders';
+
+  let latestOrders = [];
+  // 'connecting' -> 'live' (true cross-device stats) or 'local' (this
+  // browser's localStorage only - orders from other devices, like a
+  // customer's phone, won't be counted here).
+  let ordersMode = 'connecting';
+
+  function getOrders(){
+    return readStorage(ORDERS_KEY, []);
+  }
+
+  function setSyncStatus(mode){
+    ordersMode = mode;
+    const pill = document.getElementById('sync-pill');
+    const label = document.getElementById('sync-label');
+    if(!pill || !label) return;
+    pill.dataset.mode = mode;
+    if(mode === 'live') label.textContent = 'LIVE SYNC · ALL DEVICES';
+    else if(mode === 'local') label.textContent = 'LOCAL DEVICE ONLY';
+    else label.textContent = 'CONNECTING…';
+  }
+
+  function setOrders(orders){
+    latestOrders = orders || [];
+    renderStats();
+    renderPopularItems();
+  }
+
+  function renderStats(){
+    const orders = latestOrders;
+    const todayOrders = orders.filter(o => isSameDay(o.createdAt));
+    const revenue = todayOrders.reduce((sum, o) => sum + o.total, 0);
+    const pending = orders.filter(o => o.status === 'Pending' || o.status === 'Preparing' || o.status === 'Ready').length;
+    const completed = orders.filter(o => o.status === 'Completed').length;
+
+    const stats = [
+      { label: "TODAY'S ORDERS", value: todayOrders.length },
+      { label: 'REVENUE (TODAY)', value: formatPrice(revenue), accent: true },
+      { label: 'PENDING ORDERS', value: pending },
+      { label: 'COMPLETED ORDERS', value: completed },
+      { label: 'TOTAL ORDERS', value: orders.length }
+    ];
+
+    document.getElementById('stat-grid').innerHTML = stats.map(s => `
+      <div class="stat-card">
+        <div class="stat-label">${s.label}</div>
+        <div class="stat-value${s.accent ? ' accent' : ''}">${s.value}</div>
+      </div>
+    `).join('');
+  }
+
+  function renderPopularItems(){
+    const orders = latestOrders;
+    const tally = {};
+    orders.forEach(order => {
+      order.items.forEach(item => {
+        tally[item.name] = (tally[item.name] || 0) + item.qty;
+      });
+    });
+    const ranked = Object.entries(tally).sort((a, b) => b[1] - a[1]).slice(0, 6);
+    const container = document.getElementById('popular-list');
+
+    if(!ranked.length){
+      container.innerHTML = `<div class="empty-note">No orders yet. Popular items will appear once orders come in.</div>`;
+      return;
+    }
+
+    const maxCount = ranked[0][1];
+    container.innerHTML = ranked.map(([name, count], i) => `
+      <div class="popular-row">
+        <span class="popular-rank">${i + 1}</span>
+        <span class="popular-name">${name}</span>
+        <div class="popular-bar-track"><div class="popular-bar-fill" style="width:${(count / maxCount) * 100}%"></div></div>
+        <span class="popular-count">${count} sold</span>
+      </div>
+    `).join('');
+  }
+
+  function renderMenuTable(){
+    const menu = getMenu();
+    const tbody = document.getElementById('menu-table-body');
+    tbody.innerHTML = menu.map(item => `
+      <tr class="${item.outOfStock ? 'out-of-stock' : ''}" data-id="${item.id}">
+        <td>${item.name}</td>
+        <td><span class="cat-pill">${item.category === 'hot' ? 'Hot Brews' : 'Thickshakes'}</span></td>
+        <td><input type="number" class="price-input" data-id="${item.id}" value="${item.price}" min="0"></td>
+        <td>${item.outOfStock ? 'Out of stock' : 'In stock'}</td>
+        <td>
+          <div class="row-actions">
+            <button class="mini-btn${item.outOfStock ? ' active-stock' : ''}" data-action="toggle-stock" data-id="${item.id}">${item.outOfStock ? 'RESTOCK' : 'MARK OUT'}</button>
+            <button class="mini-btn danger" data-action="remove-item" data-id="${item.id}">REMOVE</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+
+    tbody.querySelectorAll('.price-input').forEach(input => {
+      input.addEventListener('change', () => {
+        const price = Number(input.value);
+        if(price >= 0){
+          updateMenuItem(Number(input.dataset.id), { price });
+          renderMenuTable();
+        }
+      });
+    });
+    tbody.querySelectorAll('[data-action="toggle-stock"]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = Number(btn.dataset.id);
+        const item = findMenuItem(id);
+        updateMenuItem(id, { outOfStock: !item.outOfStock });
+        renderMenuTable();
+      });
+    });
+    tbody.querySelectorAll('[data-action="remove-item"]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        removeMenuItem(Number(btn.dataset.id));
+        renderMenuTable();
+        renderStats();
+      });
+    });
+  }
+
+  function handleAddItem(){
+    const name = document.getElementById('new-item-name').value.trim();
+    const category = document.getElementById('new-item-category').value;
+    const price = Number(document.getElementById('new-item-price').value);
+    const description = document.getElementById('new-item-desc').value.trim();
+    const tagsRaw = document.getElementById('new-item-tags').value.trim();
+    const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim().toUpperCase()).filter(Boolean) : [];
+
+    if(!name || !price || price <= 0) return;
+
+    addMenuItem({ name, category, price, description, tags });
+    document.getElementById('new-item-name').value = '';
+    document.getElementById('new-item-price').value = '';
+    document.getElementById('new-item-desc').value = '';
+    document.getElementById('new-item-tags').value = '';
+    renderMenuTable();
+  }
+
+  document.getElementById('add-item-btn').addEventListener('click', handleAddItem);
+
+  window.addEventListener('storage', (e) => {
+    if(e.key === ORDERS_KEY && ordersMode === 'local') setOrders(getOrders());
+    if(e.key === MENU_STORAGE_KEY) renderMenuTable();
+  });
+
+  async function initOrdersFeed(){
+    if(!window.OverdoseFirebase || typeof window.OverdoseFirebase.listenForOrders !== 'function'){
+      setSyncStatus('local');
+      setOrders(getOrders());
+      return;
+    }
+    try{
+      await window.OverdoseFirebase.listenForOrders(
+        (orders) => { setSyncStatus('live'); setOrders(orders); },
+        (err) => {
+          console.warn('Admin: Firestore sync unavailable, showing this device\'s orders only. Fix by adding real project credentials to js/firebase.js.', err && err.message);
+          setSyncStatus('local');
+          setOrders(getOrders());
+          startLocalPolling();
+        }
+      );
+    }catch(err){
+      console.warn('Admin: could not reach Firestore, showing this device\'s orders only. Fix by adding real project credentials to js/firebase.js.', err && err.message);
+      setSyncStatus('local');
+      setOrders(getOrders());
+      startLocalPolling();
+    }
+  }
+
+  let localPollTimer = null;
+  function startLocalPolling(){
+    if(localPollTimer) return;
+    localPollTimer = setInterval(() => {
+      if(ordersMode === 'local') setOrders(getOrders());
+    }, 3000);
+  }
+
+  renderMenuTable();
+  document.addEventListener('DOMContentLoaded', initOrdersFeed);
+  if(document.readyState === 'interactive' || document.readyState === 'complete'){
+    // DOMContentLoaded may have already fired by the time this runs.
+    initOrdersFeed();
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,290 @@
+/* ============================================================
+   OVERDOSE // LIQUID LAB — commerce layer
+   add-to-cart, dose meter, drawer terminal, receipt modal
+   ============================================================ */
+
+/* ============================================================
+   1. ADD / STEPPER CONTROLS
+   ============================================================ */
+.add-cart-btn{
+  position:relative; overflow:hidden; isolation:isolate;
+  display:inline-flex; align-items:center; gap:8px; flex-shrink:0;
+  padding:10px 18px; border-radius:999px; border:none; cursor:pointer;
+  font-family:'Space Mono',monospace; font-weight:700; font-size:10.5px; letter-spacing:.14em;
+  background:var(--grad); color:#16090b;
+  box-shadow:0 6px 18px rgba(255,31,79,.26), inset 0 1px 0 rgba(255,255,255,.3);
+  transition:transform .18s var(--spring), box-shadow .18s, filter .2s;
+}
+.add-cart-btn:hover{ transform:translateY(-2px); box-shadow:0 10px 26px rgba(255,31,79,.38); }
+.add-cart-btn:active{ transform:scale(.94); }
+.add-cart-btn svg{ width:13px; height:13px; }
+.add-cart-btn::after{
+  content:''; position:absolute; top:0; bottom:0; left:-70%; width:45%; z-index:-1;
+  background:linear-gradient(115deg,transparent,rgba(255,255,255,.55),transparent);
+  transform:skewX(-22deg); transition:left .6s var(--ease);
+}
+.add-cart-btn:hover::after{ left:135%; }
+.add-cart-btn.added{ animation:addPulse .5s var(--spring); }
+@keyframes addPulse{ 0%{transform:scale(1)} 32%{transform:scale(.86)} 62%{transform:scale(1.1)} 100%{transform:scale(1)} }
+.add-cart-btn:disabled{
+  background:rgba(247,242,232,.05); color:var(--gray-dim); box-shadow:none; cursor:not-allowed;
+  border:1px solid var(--border);
+}
+
+.item-controls{ flex-shrink:0; }
+.item-qty-stepper{
+  display:inline-flex; align-items:center; overflow:hidden;
+  border:1px solid rgba(198,255,58,.4); border-radius:999px; background:rgba(198,255,58,.08);
+  animation:stepPop .34s var(--spring);
+}
+.item-qty-stepper .stepper-btn{
+  width:38px; height:38px; border:none; background:transparent; color:var(--acid);
+  font-size:17px; font-weight:700; line-height:1; cursor:pointer;
+  display:grid; place-items:center; transition:background .2s, transform .12s;
+}
+.item-qty-stepper .stepper-btn:hover{ background:rgba(198,255,58,.18); }
+.item-qty-stepper .stepper-btn:active{ transform:scale(.85); }
+.item-qty-stepper .stepper-qty{
+  min-width:26px; text-align:center; font-family:'Space Mono',monospace; font-weight:700; font-size:13.5px; color:var(--ink);
+}
+@keyframes stepPop{ 0%{ transform:scale(.78); opacity:0 } 60%{ transform:scale(1.07); opacity:1 } 100%{ transform:scale(1) } }
+
+/* ============================================================
+   2. DOSE METER — the floating cart
+   ============================================================ */
+.dose-meter{
+  position:fixed; right:24px; bottom:24px; z-index:900;
+  display:flex; align-items:center; gap:14px; padding:12px 22px 12px 12px;
+  border-radius:999px; cursor:pointer; color:var(--ink);
+  border:1px solid var(--border-strong);
+  background:rgba(16,11,8,.72);
+  backdrop-filter:blur(22px) saturate(180%); -webkit-backdrop-filter:blur(22px) saturate(180%);
+  box-shadow:0 18px 46px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06);
+  transition:transform .25s var(--ease), box-shadow .25s, opacity .3s, visibility .3s, border-color .3s;
+}
+.dose-meter:hover{ transform:translateY(-3px); border-color:rgba(255,106,26,.5); box-shadow:0 24px 56px rgba(0,0,0,.6); }
+.dose-meter.hidden{ opacity:0; visibility:hidden; transform:translateY(16px) scale(.9); }
+.dose-meter.bump{ animation:doseBump .5s var(--spring); }
+@keyframes doseBump{ 0%{transform:scale(1)} 34%{transform:scale(1.08) translateY(-4px)} 100%{transform:scale(1)} }
+
+.dose-ring{ position:relative; width:46px; height:46px; flex-shrink:0; }
+.dose-ring svg{ width:100%; height:100%; transform:rotate(-90deg); }
+.dose-ring circle{ fill:none; stroke-width:3; }
+.dose-ring .track{ stroke:rgba(247,242,232,.1); }
+.dose-ring .fill{
+  stroke:url(#doseGrad); stroke-linecap:round;
+  stroke-dasharray:126; stroke-dashoffset:126;
+  transition:stroke-dashoffset .7s var(--ease);
+}
+.dose-ring .ct{
+  position:absolute; inset:0; display:grid; place-items:center;
+  font-family:'Space Mono',monospace; font-weight:700; font-size:13px; color:var(--ink);
+}
+.dose-body{ display:flex; flex-direction:column; gap:3px; line-height:1; }
+.dose-total{ font-family:'Space Mono',monospace; font-weight:700; font-size:15px; }
+.dose-label{ font-family:'Space Mono',monospace; font-size:8.5px; letter-spacing:.22em; color:var(--gray-dim); text-transform:uppercase; }
+.dose-meter .chev{ width:13px; height:13px; opacity:.6; flex-shrink:0; }
+
+/* ============================================================
+   3. CART DRAWER — order terminal
+   ============================================================ */
+.cart-overlay{
+  position:fixed; inset:0; z-index:998; background:rgba(4,3,2,.66);
+  backdrop-filter:blur(5px); -webkit-backdrop-filter:blur(5px);
+  opacity:0; visibility:hidden; transition:opacity .35s, visibility .35s;
+}
+.cart-overlay.open{ opacity:1; visibility:visible; }
+
+.cart-drawer{
+  position:fixed; top:0; right:0; z-index:999;
+  width:460px; max-width:100vw; height:100dvh;
+  display:flex; flex-direction:column;
+  background:linear-gradient(190deg,#150e0a,#080605 74%);
+  border-left:1px solid var(--border-strong);
+  box-shadow:-34px 0 90px rgba(0,0,0,.65);
+  transform:translateX(101%); transition:transform .5s var(--ease);
+}
+.cart-drawer.open{ transform:none; }
+.cart-drawer::before{
+  content:''; position:absolute; inset:0; pointer-events:none; opacity:.5;
+  background:repeating-linear-gradient(180deg,transparent 0 3px, rgba(0,0,0,.22) 3px 4px);
+}
+.cart-drawer > *{ position:relative; }
+
+.cart-header{
+  display:flex; align-items:center; justify-content:space-between; gap:14px;
+  padding:22px 26px; border-bottom:1px solid var(--hair);
+}
+.cart-header h2{ font-family:'Unbounded',sans-serif; font-weight:800; font-size:19px; letter-spacing:-.03em; line-height:1; }
+.cart-header h2 span{ display:block; font-family:'Space Mono',monospace; font-weight:400; font-size:8.5px; letter-spacing:.26em; color:var(--orange-2); margin-top:7px; text-transform:uppercase; }
+.cart-close{
+  width:36px; height:36px; border-radius:11px; flex-shrink:0; display:grid; place-items:center;
+  border:1px solid var(--border-strong); background:rgba(247,242,232,.03); color:var(--ink);
+  cursor:pointer; transition:all .2s;
+}
+.cart-close:hover{ border-color:var(--hot); background:rgba(255,31,79,.12); }
+.cart-close svg{ width:15px; height:15px; }
+
+.cart-items{ flex:1; overflow-y:auto; padding:16px 26px; }
+.cart-items::-webkit-scrollbar{ width:5px; }
+.cart-items::-webkit-scrollbar-thumb{ background:var(--border-strong); border-radius:999px; }
+
+.cart-empty{
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;
+  text-align:center; padding:60px 10px; color:var(--gray-dim);
+}
+.cart-empty svg{ width:44px; height:44px; opacity:.4; }
+.cart-empty p{ font-family:'Space Mono',monospace; font-size:11px; letter-spacing:.16em; line-height:1.9; text-transform:uppercase; }
+
+.cart-item{
+  position:relative; padding:15px 0 15px 14px; border-bottom:1px solid var(--hair);
+  animation:lineIn .35s var(--ease);
+}
+.cart-item::before{
+  content:''; position:absolute; left:0; top:16px; bottom:16px; width:2px; border-radius:2px; background:var(--grad);
+}
+@keyframes lineIn{ from{ opacity:0; transform:translateX(14px) } to{ opacity:1; transform:none } }
+.cart-item-name{ font-family:'Unbounded',sans-serif; font-weight:700; font-size:14.5px; letter-spacing:-.02em; }
+.cart-item-price{ font-family:'Space Mono',monospace; font-size:10.5px; letter-spacing:.12em; color:var(--gray-dim); margin-top:5px; text-transform:uppercase; }
+.cart-item-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:12px; }
+.qty-control{ display:inline-flex; align-items:center; overflow:hidden; border:1px solid var(--border-strong); border-radius:999px; }
+.qty-btn{
+  width:30px; height:30px; border:none; background:transparent; color:var(--ink);
+  font-size:15px; cursor:pointer; display:grid; place-items:center; transition:background .2s, color .2s;
+}
+.qty-btn:hover{ background:rgba(255,106,26,.16); color:var(--orange-2); }
+.qty-value{ min-width:28px; text-align:center; font-family:'Space Mono',monospace; font-size:12.5px; }
+.cart-item-line-total{
+  font-family:'Space Mono',monospace; font-weight:700; font-size:14.5px;
+  background:var(--grad-2); -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.remove-btn{
+  margin-top:9px; padding:0; background:none; border:none; cursor:pointer;
+  font-family:'Space Mono',monospace; font-size:9px; letter-spacing:.16em; color:var(--gray-dim); transition:color .2s;
+}
+.remove-btn:hover{ color:var(--hot); }
+
+.cart-summary{ padding:16px 26px 4px; border-top:1px solid var(--hair); }
+.summary-row{
+  display:flex; justify-content:space-between; align-items:center; margin-bottom:9px;
+  font-family:'Space Mono',monospace; font-size:11px; letter-spacing:.12em; color:var(--gray); text-transform:uppercase;
+}
+.summary-row.total{ font-size:15px; color:var(--ink); font-weight:700; padding-top:11px; border-top:1px dashed var(--hair); }
+.summary-row.total .amt{ background:var(--grad-2); -webkit-background-clip:text; background-clip:text; color:transparent; }
+
+.cart-form{ padding:14px 26px 0; }
+.field-group{ margin-bottom:13px; }
+.field-group label{
+  display:block; margin-bottom:7px;
+  font-family:'Space Mono',monospace; font-size:9.5px; letter-spacing:.16em; color:var(--gray-dim); text-transform:uppercase;
+}
+.field-group input, .field-group textarea{
+  width:100%; padding:12px 14px; border-radius:11px; color:var(--ink);
+  background:rgba(247,242,232,.03); border:1px solid var(--border-strong);
+  font-family:'Inter',sans-serif; font-size:14px;
+  transition:border-color .2s, background .2s, box-shadow .2s;
+}
+.field-group input:focus, .field-group textarea:focus{
+  outline:none; border-color:var(--orange); background:rgba(255,106,26,.06);
+  box-shadow:0 0 0 3px rgba(255,106,26,.1);
+}
+.field-group textarea{ resize:vertical; min-height:58px; }
+.field-group.invalid input{ border-color:var(--hot); box-shadow:0 0 0 3px rgba(255,31,79,.12); }
+.field-error{ display:none; margin-top:6px; font-size:12px; line-height:1.4; color:#ff8ea6; }
+.field-group.invalid .field-error{ display:block; }
+
+.cart-footer{ padding:16px 26px calc(24px + env(safe-area-inset-bottom,0px)); }
+.place-order-btn{
+  position:relative; overflow:hidden; isolation:isolate;
+  width:100%; display:flex; align-items:center; justify-content:center; gap:11px;
+  padding:17px 26px; border-radius:999px; border:none; cursor:pointer;
+  font-family:'Space Mono',monospace; font-weight:700; font-size:12px; letter-spacing:.16em;
+  background:var(--grad); color:#16090b;
+  box-shadow:0 12px 32px rgba(255,31,79,.3), inset 0 1px 0 rgba(255,255,255,.28);
+  transition:transform .2s var(--spring), box-shadow .2s, opacity .2s;
+}
+.place-order-btn:hover{ transform:translateY(-2px); box-shadow:0 18px 42px rgba(255,31,79,.42); }
+.place-order-btn:disabled{ opacity:.42; cursor:not-allowed; transform:none; box-shadow:none; }
+.place-order-btn .spinner{
+  display:none; width:15px; height:15px; border-radius:50%;
+  border:2px solid rgba(22,9,11,.35); border-top-color:#16090b; animation:spin .6s linear infinite;
+}
+.place-order-btn.loading .spinner{ display:block; }
+.place-order-btn.loading .btn-label{ opacity:.7; }
+@keyframes spin{ to{ transform:rotate(360deg) } }
+
+/* ============================================================
+   4. RECEIPT MODAL
+   ============================================================ */
+.modal-overlay{
+  position:fixed; inset:0; z-index:1200; display:flex; align-items:center; justify-content:center; padding:20px;
+  background:rgba(4,3,2,.76); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+  opacity:0; visibility:hidden; transition:opacity .3s, visibility .3s;
+}
+.modal-overlay.open{ opacity:1; visibility:visible; }
+.success-modal{
+  position:relative; overflow:hidden; width:100%; max-width:400px; text-align:center;
+  padding:44px 34px 34px; border-radius:24px;
+  border:1px solid var(--border-strong);
+  background:linear-gradient(162deg,#221610,#0e0a07 72%);
+  box-shadow:0 40px 100px rgba(0,0,0,.66);
+  transform:scale(.92) translateY(14px); transition:transform .42s var(--spring);
+}
+.modal-overlay.open .success-modal{ transform:none; }
+.success-modal::before{
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background:radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255,106,26,.2), transparent 70%);
+}
+.success-modal::after{
+  content:''; position:absolute; left:0; right:0; bottom:0; height:14px;
+  background:repeating-linear-gradient(90deg, var(--orange) 0 12px, transparent 12px 24px);
+  opacity:.35;
+}
+.success-modal > *{ position:relative; }
+.success-icon{
+  width:70px; height:70px; border-radius:50%; margin:0 auto 20px; display:grid; place-items:center;
+  background:var(--grad); box-shadow:0 12px 34px rgba(255,31,79,.35);
+}
+.success-icon svg{ width:32px; height:32px; color:#16090b; }
+.modal-overlay.open .success-icon{ animation:successPop .55s var(--spring) .08s both; }
+.modal-overlay.open .success-icon svg path{ stroke-dasharray:22; stroke-dashoffset:22; animation:successCheck .4s ease .38s forwards; }
+@keyframes successPop{ from{ transform:scale(.3) rotate(-20deg); opacity:0 } to{ transform:none; opacity:1 } }
+@keyframes successCheck{ to{ stroke-dashoffset:0 } }
+.success-modal h3{ font-family:'Unbounded',sans-serif; font-weight:800; font-size:21px; letter-spacing:-.03em; margin-bottom:11px; }
+.success-modal p{ color:var(--gray); font-size:14px; line-height:1.55; }
+.success-modal .order-id{
+  display:inline-block; margin:20px 0 24px; padding:9px 16px; border-radius:8px;
+  border:1px dashed var(--border-strong); background:rgba(0,0,0,.3);
+  font-family:'Space Mono',monospace; font-size:12px; letter-spacing:.16em; color:var(--orange-2);
+}
+.modal-close-btn{
+  width:100%; padding:15px 30px; border-radius:999px; border:none; cursor:pointer;
+  font-family:'Space Mono',monospace; font-weight:700; font-size:11.5px; letter-spacing:.16em;
+  background:var(--grad); color:#16090b; box-shadow:0 10px 28px rgba(255,31,79,.28);
+  transition:transform .18s var(--spring);
+}
+.modal-close-btn:hover{ transform:translateY(-2px); }
+
+/* ============================================================
+   5. FLY-TO-CART PARTICLE
+   ============================================================ */
+.fly-dot{
+  position:fixed; z-index:1600; width:13px; height:13px; border-radius:50%; pointer-events:none;
+  background:var(--grad); box-shadow:0 0 18px rgba(255,106,26,.8);
+}
+
+/* ============================================================
+   6. MOBILE
+   ============================================================ */
+@media (max-width:640px){
+  .dose-meter{
+    left:14px; right:14px; bottom:calc(14px + env(safe-area-inset-bottom,0px));
+    justify-content:space-between; padding:11px 20px 11px 11px;
+  }
+  .cart-drawer{ width:100vw; }
+  .cart-header, .cart-items, .cart-summary, .cart-form, .cart-footer{ padding-left:18px; padding-right:18px; }
+  .add-cart-btn{ padding:12px 18px; min-height:42px; }
+  .item-qty-stepper .stepper-btn{ width:42px; height:42px; }
+  .qty-btn{ width:36px; height:36px; }
+  .success-modal{ padding:36px 24px 28px; }
+}

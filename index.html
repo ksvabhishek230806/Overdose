@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#050403">
+<meta name="description" content="Overdose — good drinks. good overdose. Hot brews, thickshakes and enough energy to keep the night going.">
+<title>overdose — good drinks. good overdose.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700;800&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/cart.css">
+</head>
+<body class="booting">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="doseGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ff6a1a"/><stop offset="100%" stop-color="#ff1f4f"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<!-- ========== BACKDROP STACK ========== -->
+<canvas id="od-field" aria-hidden="true"></canvas>
+<div class="od-aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+<div class="od-vignette" aria-hidden="true"></div>
+<div class="od-scan" aria-hidden="true"></div>
+<div class="od-grain" aria-hidden="true"></div>
+
+<!-- ========== HUD FRAME ========== -->
+<div class="od-hud" aria-hidden="true">
+  <span class="corner tl"></span><span class="corner tr"></span>
+  <span class="corner bl"></span><span class="corner br"></span>
+  <span class="rail l">OVERDOSE LIQUID LAB · EST 2018</span>
+  <span class="rail r">BATCH 014 · DOSE PROTOCOL ACTIVE</span>
+</div>
+<div id="od-progress" aria-hidden="true"></div>
+
+<!-- ========== RETICLE CURSOR ========== -->
+<div id="od-cursor" aria-hidden="true">
+  <span class="cur-ring"></span>
+  <span class="cur-dot"></span>
+  <span class="cur-label"></span>
+</div>
+
+<!-- ========== BOOT ========== -->
+<div id="od-boot" aria-hidden="true">
+  <div class="boot-mark"><b>OVER<br>DOSE<i></i></b></div>
+  <div class="boot-title">overdose</div>
+  <div class="boot-bar"><i></i></div>
+  <div class="boot-meta"><span>INITIALISING</span><span class="boot-pct">000</span><span>%</span></div>
+  <div class="boot-log"></div>
+</div>
+
+<!-- ========== SHUTTER ========== -->
+<div class="shutter" id="od-shutter" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+
+<!-- ========== HEADER ========== -->
+<header class="od-head">
+  <button class="brand" id="brand-trigger" aria-label="Play the overdose intro and open the menu">
+    <span class="logo-badge"><span class="txt">OVER<br>DOSE<span class="rule"></span></span></span>
+    <span class="brand-block">
+      <span class="brand-name">overdose</span>
+      <span class="brand-sub">liquid lab</span>
+    </span>
+  </button>
+
+  <nav class="links" aria-label="Primary">
+    <button class="navlink active" id="nav-visit" data-cursor="GO HOME" onclick="showPage('home')">VISIT</button>
+    <button class="navlink" id="nav-menu" data-cursor="OPEN THE LAB" onclick="showPage('menu')">MENU</button>
+  </nav>
+
+  <div class="head-tools">
+    <button class="kbd-btn" data-open-palette data-cursor="COMMAND">
+      <span>COMMAND</span><kbd>⌘K</kbd>
+    </button>
+    <button class="icon-btn" onclick="shareMenu()" aria-label="Share the menu" data-cursor="SHARE">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></svg>
+    </button>
+    <button class="icon-btn burger" id="mobile-menu-btn" aria-label="Open navigation" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<!-- ========== MOBILE NAV ========== -->
+<div class="mobile-nav" id="mobile-nav">
+  <button class="mobile-navlink active" id="mnav-visit" onclick="showPage('home'); closeMobileNav();">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg> VISIT
+  </button>
+  <button class="mobile-navlink" id="mnav-menu" onclick="showPage('menu'); closeMobileNav();">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg> MENU
+  </button>
+  <button class="mobile-navlink" onclick="OD.openPalette(); closeMobileNav();">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 17l6-6-6-6"/><path d="M12 19h8"/></svg> COMMAND
+  </button>
+  <button class="mobile-navlink" onclick="shareMenu(); closeMobileNav();">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></svg> SHARE MENU
+  </button>
+</div>
+<div class="mobile-nav-overlay" id="mobile-nav-overlay"></div>
+
+<!-- ============================================================
+     HOME
+     ============================================================ -->
+<section class="page active" id="page-home">
+  <div class="hero">
+    <div class="hero-grid">
+      <div>
+        <div class="status-pill">
+          <span class="dot"></span>
+          <span>OPEN NOW</span>
+          <span class="sep"></span>
+          <span class="t">10:00 — 23:30 IST</span>
+          <span class="sep"></span>
+          <span class="t" data-clock>--:--:--</span>
+        </div>
+
+        <h1 class="display">
+          <span data-split>Good drinks.</span><br>
+          <span class="it" data-split>Good overdose.</span>
+        </h1>
+
+        <p class="lede hero-copy" data-reveal>
+          Fourteen formulations. Hot brews for the slow hours, thickshakes engineered
+          for the sweet ones, and enough voltage to push the night past midnight.
+        </p>
+
+        <div class="hero-cta" data-reveal>
+          <button class="btn" data-magnetic="0.3" data-ripple data-cursor="ENTER THE LAB" onclick="showPage('menu')">
+            <span>ENTER THE LAB</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
+          <a class="link-under" href="#stats" data-cursor="SCROLL">
+            WHY OVERDOSE
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+          </a>
+        </div>
+
+        <div class="readout" data-reveal>
+          <div class="readout-row"><span>FORMULATIONS</span><b>14</b></div>
+          <div class="readout-row"><span>SERVICE WINDOW</span><b>13.5 HRS / DAY</b></div>
+          <div class="readout-row"><span>DOSE RANGE</span><b class="accent">₹100 — ₹195</b></div>
+        </div>
+      </div>
+
+      <div class="specimen" data-tilt="6" id="specimen">
+        <span class="grid-lines"></span>
+        <span class="halo"></span><span class="halo b"></span>
+        <div class="spec-top">
+          <span class="id">SPEC-001 / HOUSE</span>
+          <span>CAFE · DRINKS · MART</span>
+        </div>
+        <div>
+          <div class="spec-title">take a little<br><span class="accent">break.</span></div>
+          <p class="spec-copy">Hot brews, cold shakes, and whatever you picked up for the road. Pulled fresh, poured heavy.</p>
+          <div class="spec-bars">
+            <i style="--w:88%"></i><i style="--w:64%"></i><i style="--w:96%"></i><i style="--w:42%"></i><i style="--w:76%"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- hazard tapes -->
+  <div class="tape tilt" data-reveal>
+    <div class="tape-track" data-marquee>
+      <span>HOT BREWS</span><span>THICKSHAKES</span><span>GOOD OVERDOSE</span><span>SINCE 2018</span>
+    </div>
+  </div>
+  <div class="tape dark" style="margin-top:-1px">
+    <div class="tape-track slow rev" data-marquee>
+      <span>DOSE PROTOCOL ACTIVE</span><span>BATCH 014</span><span>NO CHILL · ALL FLAVOUR</span><span>POURED HEAVY</span>
+    </div>
+  </div>
+
+  <!-- stats -->
+  <div class="stat-strip" id="stats">
+    <div class="stat-cell" data-reveal><div class="stat-idx">01</div><div class="stat-num" data-count="14">0</div><div class="stat-label">Drinks on the menu</div></div>
+    <div class="stat-cell" data-reveal><div class="stat-idx">02</div><div class="stat-num" data-count="2018">0</div><div class="stat-label">Pouring since</div></div>
+    <div class="stat-cell" data-reveal><div class="stat-idx">03</div><div class="stat-num" data-count="13" data-suffix=".5">0</div><div class="stat-label">Hours open daily</div></div>
+    <div class="stat-cell" data-reveal><div class="stat-idx">04</div><div class="stat-num" data-count="100" data-suffix="%">0</div><div class="stat-label">No chill, all flavour</div></div>
+  </div>
+
+  <!-- process rows -->
+  <div class="sect-wrap">
+    <div class="sect-head">
+      <div>
+        <div class="eyebrow" data-reveal>THE PROTOCOL</div>
+        <h2 class="sect" data-reveal>Four steps to a <span class="it">proper dose.</span></h2>
+      </div>
+      <p class="lede" style="max-width:34ch" data-reveal>No queue, no shouting over the counter. Pick, send, collect.</p>
+    </div>
+
+    <div class="rows">
+      <div class="row-item" data-reveal data-cursor="STEP 01">
+        <div class="row-n">/01</div>
+        <div class="row-t">Open the lab</div>
+        <div class="row-d">Fourteen formulations split into hot brews and thickshakes, each with its own dose profile.</div>
+        <div class="row-a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+      </div>
+      <div class="row-item" data-reveal data-cursor="STEP 02">
+        <div class="row-n">/02</div>
+        <div class="row-t">Load your dose</div>
+        <div class="row-d">Tap ADD. The meter in the corner fills as your order builds — watch it climb.</div>
+        <div class="row-a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+      </div>
+      <div class="row-item" data-reveal data-cursor="STEP 03">
+        <div class="row-n">/03</div>
+        <div class="row-t">Send it to the line</div>
+        <div class="row-d">Your name, any notes, done. The order lands on the kitchen board in real time.</div>
+        <div class="row-a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+      </div>
+      <div class="row-item" data-reveal data-cursor="STEP 04">
+        <div class="row-n">/04</div>
+        <div class="row-t">Collect and overdose</div>
+        <div class="row-d">Accepted → prepared → ready. Pick it up at the counter when your ticket clears.</div>
+        <div class="row-a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- cta -->
+  <div class="cta-banner" data-reveal>
+    <div class="cta-inner">
+      <div class="eyebrow" style="justify-content:center">READY WHEN YOU ARE</div>
+      <h2 class="sect" style="margin-top:16px">Ready for your <span class="it">next dose?</span></h2>
+      <p>Fourteen drinks. Two moods: warm and slow, or cold and loaded.</p>
+      <button class="btn" data-magnetic="0.28" data-ripple data-cursor="ORDER" onclick="showPage('menu')">
+        <span>ORDER NOW</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     MENU / THE LAB
+     ============================================================ -->
+<section class="page" id="page-menu">
+  <div class="menu-wrap">
+    <div class="menu-head">
+      <div class="eyebrow">THE FULL LINEUP · BATCH 014</div>
+      <h2 class="menu-title">Pick your <span class="it">poison.</span></h2>
+    </div>
+
+    <div class="lab-bar">
+      <div class="meta">
+        <span><i></i> LIVE MENU</span>
+        <span id="lab-count">14 FORMULATIONS</span>
+        <span data-clock>--:--:--</span>
+      </div>
+      <div class="tabs-outer">
+        <div class="tabs" id="tabs">
+          <span class="tab-indicator" id="tab-indicator"></span>
+          <button class="tab active" data-filter="all" onclick="filterMenu('all', this)">ALL</button>
+          <button class="tab" data-filter="hot" onclick="filterMenu('hot', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9h12l-1 10a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 9z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></svg>
+            HOT BREWS
+          </button>
+          <button class="tab" data-filter="shake" onclick="filterMenu('shake', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3h8l-1 4H9L8 3z"/><path d="M8 7l1.5 12a1 1 0 0 0 1 .9h3a1 1 0 0 0 1-.9L16 7"/><path d="M9 12h6"/></svg>
+            THICKSHAKES
+          </button>
+        </div>
+      </div>
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input type="search" id="menu-search" placeholder="SEARCH" aria-label="Search the menu" autocomplete="off">
+      </div>
+    </div>
+
+    <div class="menu-columns">
+      <div class="menu-col" data-section="hot">
+        <div class="col-head">
+          <div class="col-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9h12l-1 10a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 9z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></svg>
+          </div>
+          <div class="col-title">Hot Brews</div>
+        </div>
+        <div class="col-meta"><span>WARM · EASY · FAMILIAR</span><span id="hot-count">4 items</span></div>
+        <div class="item-list"></div>
+      </div>
+
+      <div class="menu-col" data-section="shake">
+        <div class="col-head">
+          <div class="col-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3h8l-1 4H9L8 3z"/><path d="M8 7l1.5 12a1 1 0 0 0 1 .9h3a1 1 0 0 0 1-.9L16 7"/><path d="M9 12h6"/></svg>
+          </div>
+          <div class="col-title">Thickshakes</div>
+        </div>
+        <div class="col-meta"><span>COLD · CREAMY · LOADED</span><span id="shake-count">10 items</span></div>
+        <div class="item-list"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== FOOTER ========== -->
+<footer class="site-footer">
+  <div><span class="fbrand">overdose</span> &nbsp; © 2026</div>
+  <div style="text-align:center">CAFE · DRINKS · MART ENERGY</div>
+  <div class="fend">
+    <a href="kitchen/kitchen.html">KITCHEN</a> &nbsp;·&nbsp;
+    <a href="admin/admin.html">ADMIN</a>
+  </div>
+</footer>
+
+<!-- ========== DOSE METER (cart) ========== -->
+<button class="dose-meter hidden" id="floating-cart-btn" aria-label="Open your order">
+  <span class="dose-ring">
+    <svg viewBox="0 0 46 46"><circle class="track" cx="23" cy="23" r="20"/><circle class="fill" id="dose-fill" cx="23" cy="23" r="20"/></svg>
+    <span class="ct" id="fc-count">0</span>
+  </span>
+  <span class="dose-body">
+    <span class="dose-total" id="fc-total">₹0</span>
+    <span class="dose-label">DOSE LOADED</span>
+  </span>
+  <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M9 6l6 6-6 6"/></svg>
+</button>
+
+<!-- ========== CART DRAWER ========== -->
+<div class="cart-overlay" id="cart-overlay"></div>
+<aside class="cart-drawer" id="cart-drawer" aria-label="Your order">
+  <div class="cart-header">
+    <h2>Your Order<span>DOSE MANIFEST</span></h2>
+    <button class="cart-close" id="cart-close-btn" aria-label="Close order">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+
+  <div class="cart-items" id="cart-items"></div>
+
+  <div class="cart-summary">
+    <div class="summary-row"><span>Subtotal</span><span id="cart-subtotal">₹0</span></div>
+  </div>
+
+  <div class="cart-form">
+    <div class="field-group">
+      <label for="customer-name">CUSTOMER NAME *</label>
+      <input type="text" id="customer-name" placeholder="Who's collecting?" required aria-required="true" maxlength="60" autocomplete="name">
+      <span class="field-error" id="customer-name-error">Please enter your name to place an order.</span>
+    </div>
+    <div class="field-group">
+      <label for="order-notes">SPECIAL INSTRUCTIONS</label>
+      <textarea id="order-notes" placeholder="Anything the kitchen should know (optional)"></textarea>
+    </div>
+  </div>
+
+  <div class="cart-summary">
+    <div class="summary-row total"><span>Total</span><span class="amt" id="cart-total">₹0</span></div>
+  </div>
+
+  <div class="cart-footer">
+    <button class="place-order-btn" id="place-order-btn" disabled>
+      <span class="spinner"></span>
+      <span class="btn-label">SEND TO THE LINE</span>
+    </button>
+  </div>
+</aside>
+
+<!-- ========== RECEIPT MODAL ========== -->
+<div class="modal-overlay" id="success-modal-overlay">
+  <div class="success-modal">
+    <div class="success-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M8 12.5l2.6 2.6L16 9.6"/></svg>
+    </div>
+    <h3>Dose dispatched.</h3>
+    <p>The kitchen has your order on the board and will start on it shortly.</p>
+    <div class="order-id" id="success-order-id"></div>
+    <button class="modal-close-btn" id="success-modal-close">CONTINUE</button>
+  </div>
+</div>
+
+<!-- ========== COMMAND PALETTE ========== -->
+<div id="od-palette" aria-hidden="true">
+  <div class="pal-box" role="dialog" aria-label="Command palette">
+    <div class="pal-top">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 17l6-6-6-6"/><path d="M12 19h8"/></svg>
+      <input type="text" placeholder="Type a command or a drink…" aria-label="Command">
+      <span class="esc">ESC</span>
+    </div>
+    <div class="pal-list"></div>
+    <div class="pal-foot"><span>↑↓ NAVIGATE</span><span>↵ RUN</span><span>⌘K TOGGLE</span></div>
+  </div>
+</div>
+
+<script src="js/fx.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/menu.js"></script>
+<script src="js/cart.js"></script>
+<script type="module" src="js/firebase.js"></script>
+<script src="js/app.js"></script>
+<script src="js/motion.js"></script>
+</body>
+</html>

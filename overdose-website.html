@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>overdose — good drinks. good overdose.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;0,900;1,500;1,600;1,700;1,800;1,900&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0b0908;
+    --bg-2: #120d0a;
+    --panel: #1a130f;
+    --panel-2: #2a1c14;
+    --orange: #e8813a;
+    --orange-2: #f0954f;
+    --cream: #f4efe6;
+    --gray: #a9a29a;
+    --gray-dim: #7a746d;
+    --border: rgba(244,239,230,0.09);
+    --border-strong: rgba(244,239,230,0.16);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{background:var(--bg); color:var(--cream); font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased;}
+  body{
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse 900px 500px at 8% 15%, rgba(232,129,58,0.08), transparent 60%),
+      var(--bg);
+    overflow-x:hidden;
+  }
+  a{color:inherit; text-decoration:none;}
+  .mono{font-family:'Space Mono', monospace; letter-spacing:0.06em;}
+
+  /* ===== NAV ===== */
+  header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 22px 48px;
+    border-bottom:1px solid var(--border);
+    position:relative; z-index:10;
+  }
+  .brand{display:flex; align-items:center; gap:14px;}
+  .logo-badge{
+    width:56px; height:56px; border-radius:12px;
+    background: linear-gradient(180deg, #2a1c14, #150f0b);
+    border:1px solid var(--border-strong);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 6px 16px rgba(0,0,0,0.4);
+  }
+  .logo-badge .txt{
+    font-family:'Space Mono', monospace;
+    font-weight:700; font-size:11px; line-height:1.05;
+    text-align:center; letter-spacing:0.02em;
+    background: linear-gradient(180deg, #ffd76a, #e8a530);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    text-shadow: 0 1px 0 rgba(0,0,0,0.3);
+  }
+  .logo-badge .txt .rule{
+    display:block; width:26px; height:2px; background:#c97a1f; margin:2px auto 0;
+    opacity:0.7;
+  }
+  .brand-name{font-family:'Playfair Display', serif; font-weight:600; font-size:26px; color:var(--cream);}
+  nav.links{display:flex; align-items:center; gap:40px;}
+  .navlink{
+    font-family:'Space Mono', monospace; font-size:13px; letter-spacing:0.12em;
+    color: var(--gray); cursor:pointer; transition: color .2s;
+    background:none; border:none; padding:0;
+  }
+  .navlink:hover{color:var(--cream);}
+  .navlink.active{color:var(--cream);}
+  .share-btn{
+    display:flex; align-items:center; gap:9px;
+    border:1px solid var(--border-strong); border-radius:999px;
+    padding:11px 20px;
+    font-family:'Space Mono', monospace; font-size:13px; letter-spacing:0.1em;
+    background:transparent; color:var(--cream); cursor:pointer;
+    transition: background .2s, border-color .2s;
+    white-space:nowrap;
+  }
+  .share-btn:hover{background:rgba(244,239,230,0.06); border-color:rgba(244,239,230,0.28);}
+  .share-btn svg{width:15px; height:15px; opacity:.9;}
+
+  /* ===== PAGES ===== */
+  .page{display:none;}
+  .page.active{display:block;}
+
+  /* ===== HERO ===== */
+  .hero{
+    position:relative;
+    padding: 90px 48px 110px;
+    max-width:1500px; margin:0 auto;
+  }
+  .status{
+    display:flex; align-items:center; gap:10px;
+    font-family:'Space Mono', monospace; font-size:14px; letter-spacing:0.1em;
+    color:var(--orange); margin-bottom:42px;
+  }
+  .status .dot{width:8px; height:8px; border-radius:50%; background:var(--orange); box-shadow:0 0 12px rgba(232,129,58,0.7);}
+
+  .hero-grid{display:grid; grid-template-columns: 1.5fr 1fr; gap:60px; align-items:center;}
+
+  h1.headline{
+    font-family:'Playfair Display', serif;
+    font-weight:700;
+    font-size: clamp(48px, 6.4vw, 96px);
+    line-height:1.02;
+    letter-spacing:-0.01em;
+  }
+  h1.headline .line1{color:var(--cream); display:block;}
+  h1.headline .line2{
+    display:block; color:var(--orange); font-style:italic; font-weight:600;
+    margin-top:2px;
+  }
+  h1.headline .line3{
+    display:block; color:var(--orange); font-style:italic; font-weight:600;
+  }
+
+  .hero-copy{
+    max-width:560px; margin-top:34px;
+    font-size:19px; line-height:1.6; color:var(--gray);
+  }
+
+  .cta{
+    margin-top:44px;
+    display:inline-flex; align-items:center; gap:10px;
+    background: linear-gradient(180deg, var(--orange-2), var(--orange));
+    color:#1a0f04; font-weight:700;
+    font-family:'Space Mono', monospace; font-size:14px; letter-spacing:0.1em;
+    padding:16px 26px; border-radius:999px; border:none; cursor:pointer;
+    box-shadow: 0 8px 24px rgba(232,129,58,0.25);
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .cta:hover{transform:translateY(-1px); box-shadow:0 10px 30px rgba(232,129,58,0.35);}
+  .cta svg{width:14px; height:14px;}
+
+  /* side card */
+  .side-card{
+    position:relative; overflow:hidden;
+    background: linear-gradient(160deg, #2b1c12, #1a1109 60%);
+    border:1px solid var(--border-strong);
+    border-radius:22px;
+    padding:34px;
+    min-height:300px;
+    display:flex; flex-direction:column; justify-content:space-between;
+  }
+  .side-card .ring{
+    position:absolute; border-radius:50%; border: 26px solid rgba(232,129,58,0.14);
+  }
+  .side-card .ring.r1{ width:260px; height:260px; right:-90px; bottom:-110px; }
+  .side-card .ring.r2{ width:180px; height:180px; right:-30px; bottom:-60px; border-color: rgba(232,129,58,0.22);}
+  .side-top{
+    display:flex; justify-content:space-between; align-items:flex-start;
+    font-family:'Space Mono', monospace; font-size:12px; letter-spacing:0.1em; color:var(--gray);
+    position:relative; z-index:2;
+  }
+  .side-top .tag-right{color:var(--gray-dim);}
+  .side-title{
+    font-family:'Playfair Display', serif; font-weight:700; font-size:38px;
+    line-height:1.08; margin-top:26px; position:relative; z-index:2;
+  }
+  .side-title .accent{color:var(--orange);}
+  .side-copy{
+    margin-top:16px; font-size:15px; line-height:1.55; color:var(--gray);
+    max-width:340px; position:relative; z-index:2;
+  }
+
+  /* ===== MENU PAGE ===== */
+  .menu-wrap{max-width:1500px; margin:0 auto; padding: 46px 48px 100px;}
+  .tabs{display:flex; gap:14px; margin-bottom:46px;}
+  .tab{
+    display:flex; align-items:center; gap:9px;
+    padding:13px 22px; border-radius:999px;
+    font-family:'Space Mono', monospace; font-size:13px; letter-spacing:0.08em;
+    border:1px solid var(--border-strong); background:transparent; color:var(--gray);
+    cursor:pointer; transition: all .2s;
+  }
+  .tab svg{width:15px; height:15px;}
+  .tab.active{background:var(--cream); color:#141110; border-color:var(--cream);}
+  .tab:not(.active):hover{border-color:rgba(244,239,230,0.32); color:var(--cream);}
+
+  .menu-columns{display:grid; grid-template-columns:1fr 1fr; gap:56px;}
+  @media (max-width: 900px){ .menu-columns{grid-template-columns:1fr;} .hero-grid{grid-template-columns:1fr;} }
+
+  .col-head{display:flex; align-items:flex-start; gap:14px; margin-bottom:8px;}
+  .col-icon{
+    width:34px; height:34px; border-radius:50%; background:var(--panel-2);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:4px;
+  }
+  .col-icon svg{width:17px; height:17px; color:var(--orange);}
+  .col-title{font-family:'Playfair Display', serif; font-weight:700; font-size:30px;}
+  .col-meta{
+    display:flex; justify-content:space-between; align-items:center;
+    font-family:'Space Mono', monospace; font-size:12px; color:var(--gray-dim); letter-spacing:0.08em;
+    padding-bottom:14px; margin-bottom:22px; border-bottom:1px solid var(--border);
+  }
+
+  .item-card{
+    border:1px solid var(--border); border-radius:16px;
+    padding:24px; margin-bottom:18px;
+    position:relative;
+    transition: border-color .2s, background .2s;
+  }
+  .item-card:hover{border-color:var(--border-strong); background:rgba(244,239,230,0.015);}
+  .item-top{display:flex; justify-content:space-between; align-items:flex-start; gap:14px;}
+  .item-name-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+  .item-name{font-family:'Playfair Display', serif; font-weight:700; font-size:22px;}
+  .badge{
+    font-family:'Space Mono', monospace; font-size:10.5px; letter-spacing:0.06em;
+    background: rgba(232,129,58,0.14); color:var(--orange-2);
+    border:1px solid rgba(232,129,58,0.3);
+    padding:4px 10px; border-radius:999px; white-space:nowrap;
+  }
+  .item-price{font-family:'Space Mono', monospace; font-weight:700; font-size:19px; color:var(--orange-2); white-space:nowrap;}
+  .item-desc{color:var(--gray); font-size:15px; line-height:1.5; margin:12px 0 16px; max-width:88%;}
+  .item-bottom{display:flex; justify-content:space-between; align-items:center;}
+  .tag-row{display:flex; gap:8px; flex-wrap:wrap;}
+  .tag{
+    font-family:'Space Mono', monospace; font-size:10.5px; letter-spacing:0.05em;
+    color:var(--gray-dim); border:1px solid var(--border-strong);
+    padding:5px 10px; border-radius:6px;
+  }
+  .arrow-btn{
+    width:34px; height:34px; border-radius:50%; border:1px solid var(--border-strong);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    background:transparent; cursor:pointer; transition: all .2s;
+  }
+  .arrow-btn:hover{border-color:var(--orange); background:rgba(232,129,58,0.08);}
+  .arrow-btn svg{width:14px; height:14px; color:var(--cream);}
+
+  footer.site-footer{
+    border-top:1px solid var(--border); padding:26px 48px;
+    display:flex; justify-content:space-between; align-items:center;
+    font-family:'Space Mono', monospace; font-size:12px; color:var(--gray-dim); letter-spacing:0.06em;
+  }
+
+  @media (max-width:640px){
+    header{padding:18px 20px;}
+    nav.links{display:none;}
+    .hero{padding:50px 20px 70px;}
+    .menu-wrap{padding:30px 20px 70px;}
+    .tabs{flex-wrap:wrap;}
+    .item-desc{max-width:100%;}
+    footer.site-footer{padding:20px; flex-direction:column; gap:8px; text-align:center;}
+  }
+
+  /* ===== MORPHING BACKGROUND BLOBS ===== */
+  .bg-blobs{ position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
+  .bg-blobs .blob{
+    position:absolute; opacity:0.32; filter:blur(70px);
+    background: radial-gradient(circle at 30% 30%, rgba(232,129,58,0.6), rgba(232,129,58,0) 70%);
+    animation: blobMorph 18s ease-in-out infinite, blobDrift 22s ease-in-out infinite;
+    mix-blend-mode: screen;
+  }
+  .bg-blobs .blob-1{ width:560px; height:560px; top:-180px; left:-140px; }
+  .bg-blobs .blob-2{
+    width:440px; height:440px; bottom:-160px; right:-100px;
+    background: radial-gradient(circle at 60% 40%, rgba(240,149,79,0.45), rgba(240,149,79,0) 70%);
+    animation-duration: 24s, 28s; animation-delay: -6s, -4s;
+  }
+  @keyframes blobMorph{
+    0%,100%{ border-radius: 42% 58% 65% 35% / 45% 40% 60% 55%; }
+    25%{ border-radius: 60% 40% 30% 70% / 55% 65% 35% 45%; }
+    50%{ border-radius: 35% 65% 55% 45% / 60% 30% 70% 40%; }
+    75%{ border-radius: 55% 45% 40% 60% / 35% 55% 45% 65%; }
+  }
+  @keyframes blobDrift{
+    0%,100%{ transform: translate(0,0) scale(1); }
+    50%{ transform: translate(40px,-30px) scale(1.08); }
+  }
+
+  /* ===== GLASS SURFACES ===== */
+  header, .page, footer.site-footer{ position:relative; z-index:1; }
+  header{
+    position:sticky; top:0; z-index:50;
+    background: rgba(11,9,8,0.55);
+    backdrop-filter: blur(22px) saturate(180%);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
+  }
+  .side-card, .item-card, .tab, .share-btn{
+    background: rgba(244,239,230,0.035);
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+  }
+  .side-card{
+    background: linear-gradient(160deg, rgba(43,28,18,0.55), rgba(26,17,9,0.4) 60%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 20px 50px rgba(0,0,0,0.35);
+  }
+  .item-card{
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+    transition: border-color .25s ease, background .25s ease, transform .25s cubic-bezier(.16,1,.3,1), box-shadow .25s ease;
+  }
+  .item-card:hover{
+    transform: translateY(-3px);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 14px 30px rgba(0,0,0,0.3);
+  }
+  .tab.active{ backdrop-filter:none; -webkit-backdrop-filter:none; }
+
+  /* glass sheen sweep on buttons */
+  .cta, .share-btn{ position:relative; overflow:hidden; }
+  .cta::after, .share-btn::after{
+    content:''; position:absolute; top:0; left:-60%; width:40%; height:100%;
+    background: linear-gradient(120deg, transparent, rgba(255,255,255,0.35), transparent);
+    transform: skewX(-20deg); transition: left .6s ease;
+  }
+  .cta:hover::after, .share-btn:hover::after{ left:130%; }
+
+  /* ===== PAGE MORPH TRANSITION ===== */
+  .page{ will-change: opacity, transform, filter; }
+  body.page-transitioning{ cursor: progress; }
+
+  @media (prefers-reduced-motion: reduce){
+    .bg-blobs{ display:none; }
+    .page{ transition:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-blobs" aria-hidden="true">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+</div>
+
+<header>
+  <div class="brand">
+    <div class="logo-badge">
+      <div class="txt">OVER<br>DOSE<span class="rule"></span></div>
+    </div>
+    <div class="brand-name">overdose</div>
+  </div>
+  <nav class="links">
+    <button class="navlink" id="nav-menu" onclick="showPage('menu')">MENU</button>
+    <button class="navlink" id="nav-visit" onclick="showPage('home')">VISIT</button>
+  </nav>
+  <button class="share-btn" onclick="shareMenu()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></svg>
+    SHARE MENU
+  </button>
+</header>
+
+<!-- HOME PAGE -->
+<section class="page active" id="page-home">
+  <div class="hero">
+    <div class="status"><span class="dot"></span> OPEN TODAY &nbsp;·&nbsp; 10AM–11:30PM</div>
+    <div class="hero-grid">
+      <div>
+        <h1 class="headline">
+          <span class="line1">Good drinks.</span>
+          <span class="line2">Good</span>
+          <span class="line3">overdose.</span>
+        </h1>
+        <p class="hero-copy">Hot brews for the slow moments, thickshakes for the sweet ones, and enough energy to keep the night going.</p>
+        <button class="cta" onclick="showPage('menu')">
+          SEE THE MENU
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+      </div>
+      <div class="side-card">
+        <div class="ring r1"></div>
+        <div class="ring r2"></div>
+        <div class="side-top">
+          <span>SINCE 2018</span>
+          <span class="tag-right">CAFE / DRINKS / MART ENERGY</span>
+        </div>
+        <div>
+          <div class="side-title">take a little<br><span class="accent">break.</span></div>
+          <div class="side-copy">Hot brews, cold shakes, and whatever you picked up for the road.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MENU PAGE -->
+<section class="page" id="page-menu">
+  <div class="menu-wrap">
+    <div class="tabs">
+      <button class="tab active" data-filter="all" onclick="filterMenu('all', this)">ALL ITEMS</button>
+      <button class="tab" data-filter="hot" onclick="filterMenu('hot', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9h12l-1 10a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 9z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></svg>
+        HOT BREWS
+      </button>
+      <button class="tab" data-filter="shake" onclick="filterMenu('shake', this)">SHAKE THICKSHAKES</button>
+    </div>
+
+    <div class="menu-columns">
+      <div class="menu-col" data-section="hot">
+        <div class="col-head">
+          <div class="col-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9h12l-1 10a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 9z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></svg>
+          </div>
+          <div class="col-title">Hot Brews</div>
+        </div>
+        <div class="col-meta"><span>WARM, EASY, FAMILIAR</span><span>4 items</span></div>
+
+        <div class="item-card" data-cat="hot">
+          <div class="item-top">
+            <div class="item-name-row"><span class="item-name">Coffee</span><span class="badge">✦ HOUSE PICK</span></div>
+            <span class="item-price">₹110</span>
+          </div>
+          <div class="item-desc">A warm, familiar cup for starting slow or staying late.</div>
+          <div class="item-bottom">
+            <div class="tag-row"><span class="tag">HOT</span></div>
+            <button class="arrow-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg></button>
+          </div>
+        </div>
+
+        <div class="item-card" data-cat="hot">
+          <div class="item-top">
+            <div class="item-name-row"><span class="item-name">Tea</span></div>
+            <span class="item-price">₹100</span>
+          </div>
+          <div class="item-desc">A comforting everyday brew, served hot and easy.</div>
+          <div class="item-bottom">
+            <div class="tag-row"><span class="tag">HOT</span></div>
+            <button class="arrow-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg></button>
+          </div>
+        </div>
+
+        <div class="item-card" data-cat="hot">
+          <div class="item-top">
+            <div class="item-name-row"><span class="item-name">Lemon Tea</span><span class="badge">✦ HOUSE PICK</span></div>
+            <span class="item-price">₹110</span>
+          </div>
+          <div class="item-desc">Bright tea with a citrus lift and a clean finish.</div>
+          <div class="item-bottom">
+            <div class="tag-row"><span class="tag">HOT</span></div>
+            <button class="arrow-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg></button>
+          </div>
+        </div>
+
+        <div class="item-card" data-cat="hot">
+          <div class="item-top">
+            <div class="item-name-row"><span class="item-name">Badam Milk</span></div>
+            <span class="item-price">₹125</span>
+          </div>
+          <div class="item-desc">Warm, creamy almond milk with a gentle sweet finish.</div>
+          <div class="item-bottom">
+            <div class="tag-row"><span class="tag">HOT</span><span class="tag">CONTAINS NUTS</span></div>
+            <button class="arrow-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="menu-col" data-section="shake">
+        <div class="col-head">
+          <div class="col-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3h8l-1 4H9L8 3z"/><path d="M8 7l1.5 12a1 1 0 0 0 1 .9h3a1 1 0 0 0 1-.9L16 7"/><path d="M9 12h6"/></svg>
+          </div>
+          <div class="col-title">Thickshakes</div>
+        </div>
+        <div class="col-meta"><span>COLD, CREAMY, LOADED</span><span>10 items</span></div>
+
+        <div class="item-card" data-cat="shake">
+          <div class="item-top">
+            <div class="item-name-row"><span class="item-name">Classic Vanilla</span><span class="badge">✦ HOUSE PICK</span></div>
+            <span class="item-price">₹160</span>
+          </div>
+          <div class="item-desc">Smooth vanilla thickshake with a soft, creamy finish.</div>
+          <div class="item-bottom">
+            <div class="tag-row"><span class="tag">COLD</span><span class="tag">CONTAINS DAIRY</span></div>
+            <button class="arrow-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg></button>
+          </div>
+        </div>
+
+        <div class="item-card" data-cat="shake">
+          <div class="item-top">
+            <div class="item-name-row"><span class="item-name">Chocolate</span></div>
+            <span class="item-price">₹165</span>
+          </div>
+          <div class="item-desc">Rich chocolate blended into a proper thick, cold treat.</div>
+          <div class="item-bottom">
+            <div class="tag-row"><span class="tag">COLD</span><span class="tag">CONTAINS DAIRY</span></div>
+            <button class="arrow-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg></button>
+          </div>
+        </div>
+
+        <div class="item-card" data-cat="shake">
+          <div class="item-top">
+            <div class="item-name-row"><span class="item-name">Mango</span></div>
+            <span class="item-price">₹170</span>
+          </div>
+          <div class="item-desc">Mango sweetness, blended cold and extra creamy.</div>
+          <div class="item-bottom">
+            <div class="tag-row"><span class="tag">COLD</span><span class="tag">CONTAINS DAIRY</span></div>
+            <button class="arrow-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg></button>
+          </div>
+        </div>
+
+        <div class="item-card" data-cat="shake">
+          <div class="item-top">
+            <div class="item-name-row"><span class="item-name">Strawberry</span></div>
+            <span class="item-price">₹170</span>
+          </div>
+          <div class="item-desc">Bright strawberry flavour with a smooth shake texture.</div>
+          <div class="item-bottom">
+            <div class="tag-row"><span class="tag">COLD</span><span class="tag">CONTAINS DAIRY</span></div>
+            <button class="arrow-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg></button>
+          </div>
+        </div>
+
+        <div class="item-card" data-cat="shake">
+          <div class="item-top">
+            <div class="item-name-row"><span class="item-name">Butterscotch</span></div>
+            <span class="item-price">₹170</span>
+          </div>
+          <div class="item-desc">Caramelised butterscotch, blended thick and nutty.</div>
+          <div class="item-bottom">
+            <div class="tag-row"><span class="tag">COLD</span><span class="tag">CONTAINS DAIRY</span><span class="tag">CONTAINS NUTS</span></div>
+            <button class="arrow-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg></button>
+          </div>
+        </div>
+
+        <div class="item-card" data-cat="shake">
+          <div class="item-top">
+            <div class="item-name-row"><span class="item-name">Oreo</span><span class="badge">✦ HOUSE PICK</span></div>
+            <span class="item-price">₹180</span>
+          </div>
+          <div class="item-desc">Crushed cookie chunks folded into a creamy cold shake.</div>
+          <div class="item-bottom">
+            <div class="tag-row"><span class="tag">COLD</span><span class="tag">CONTAINS DAIRY</span><span class="tag">CONTAINS GLUTEN</span></div>
+            <button class="arrow-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg></button>
+          </div>
+        </div>
+
+        <div class="item-card" data-cat="shake">
+          <div class="item-top">
+            <div class="item-name-row"><span class="item-name">KitKat</span></div>
+            <span class="item-price">₹185</span>
+          </div>
+          <div class="item-desc">Chocolate wafer bars blended into a rich cold shake.</div>
+          <div class="item-bottom">
+            <div class="tag-row"><span class="tag">COLD</span><span class="tag">CONTAINS DAIRY</span><span class="tag">CONTAINS GLUTEN</span></div>
+            <button class="arrow-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg></button>
+          </div>
+        </div>
+
+        <div class="item-card" data-cat="shake">
+          <div class="item-top">
+            <div class="item-name-row"><span class="item-name">Nutella</span></div>
+            <span class="item-price">₹190</span>
+          </div>
+          <div class="item-desc">Hazelnut cocoa spread blended cold, thick and indulgent.</div>
+          <div class="item-bottom">
+            <div class="tag-row"><span class="tag">COLD</span><span class="tag">CONTAINS DAIRY</span><span class="tag">CONTAINS NUTS</span></div>
+            <button class="arrow-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg></button>
+          </div>
+        </div>
+
+        <div class="item-card" data-cat="shake">
+          <div class="item-top">
+            <div class="item-name-row"><span class="item-name">Cold Coffee</span></div>
+            <span class="item-price">₹150</span>
+          </div>
+          <div class="item-desc">Bold cold brew blended thick, for a slower kind of jolt.</div>
+          <div class="item-bottom">
+            <div class="tag-row"><span class="tag">COLD</span><span class="tag">CONTAINS DAIRY</span></div>
+            <button class="arrow-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg></button>
+          </div>
+        </div>
+
+        <div class="item-card" data-cat="shake">
+          <div class="item-top">
+            <div class="item-name-row"><span class="item-name">Red Bull Energy</span></div>
+            <span class="item-price">₹195</span>
+          </div>
+          <div class="item-desc">Energy drink blended shake style, for staying up late.</div>
+          <div class="item-bottom">
+            <div class="tag-row"><span class="tag">COLD</span><span class="tag">CONTAINS DAIRY</span><span class="tag">CAFFEINE</span></div>
+            <button class="arrow-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <span>OVERDOSE © 2026</span>
+  <span>CAFE · DRINKS · MART ENERGY</span>
+</footer>
+
+<script>
+function showPage(name){
+  const home = document.getElementById('page-home');
+  const menu = document.getElementById('page-menu');
+  const current = home.classList.contains('active') ? home : menu;
+  const target = name === 'home' ? home : menu;
+  if(current === target || document.body.classList.contains('page-transitioning')) return;
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const swap = () => {
+    current.classList.remove('active');
+    target.classList.add('active');
+    document.getElementById('nav-menu').classList.toggle('active', name==='menu');
+    document.getElementById('nav-visit').classList.toggle('active', name==='home');
+    window.scrollTo({top:0, behavior:'instant'});
+  };
+
+  if(reduceMotion || !current.animate){
+    swap();
+    return;
+  }
+
+  document.body.classList.add('page-transitioning');
+  current.animate(
+    [
+      { opacity:1, transform:'translateY(0) scale(1)', filter:'blur(0px)' },
+      { opacity:0, transform:'translateY(-14px) scale(0.97)', filter:'blur(10px)' }
+    ],
+    { duration:320, easing:'cubic-bezier(.4,0,.2,1)' }
+  ).onfinish = () => {
+    swap();
+    target.animate(
+      [
+        { opacity:0, transform:'translateY(18px) scale(0.97)', filter:'blur(10px)' },
+        { opacity:1, transform:'translateY(0) scale(1)', filter:'blur(0px)' }
+      ],
+      { duration:420, easing:'cubic-bezier(.16,1,.3,1)' }
+    ).onfinish = () => { document.body.classList.remove('page-transitioning'); };
+  };
+}
+function filterMenu(cat, btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  const hotCol = document.querySelector('.menu-col[data-section="hot"]');
+  const shakeCol = document.querySelector('.menu-col[data-section="shake"]');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const apply = () => {
+    if(cat==='all'){ hotCol.style.display='block'; shakeCol.style.display='block'; }
+    else if(cat==='hot'){ hotCol.style.display='block'; shakeCol.style.display='none'; }
+    else if(cat==='shake'){ hotCol.style.display='none'; shakeCol.style.display='block'; }
+  };
+
+  if(reduceMotion || !hotCol.animate){
+    apply();
+    return;
+  }
+
+  [hotCol, shakeCol].forEach(col => {
+    col.animate([{opacity:1},{opacity:0}], {duration:140, easing:'ease'});
+  });
+  setTimeout(() => {
+    apply();
+    [hotCol, shakeCol].forEach(col => {
+      if(col.style.display !== 'none'){
+        col.animate(
+          [{opacity:0, transform:'translateY(8px)'}, {opacity:1, transform:'translateY(0)'}],
+          {duration:280, easing:'cubic-bezier(.16,1,.3,1)'}
+        );
+      }
+    });
+  }, 140);
+}
+function shareMenu(){
+  const url = window.location.href;
+  if(navigator.share){ navigator.share({title:'Overdose Menu', url}); }
+  else { navigator.clipboard.writeText(url).then(()=>alert('Menu link copied!')); }
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#050403">
+<title>overdose — Kitchen Ops Deck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+  body{ padding-bottom:20px; }
+
+  /* ===== TOP METRIC RAIL ===== */
+  .ops-rail{
+    display:grid; grid-template-columns:repeat(5,1fr); gap:10px;
+    padding:16px var(--gut) 0; max-width:1900px; margin-inline:auto;
+  }
+  .ops-cell{
+    position:relative; overflow:hidden; padding:14px 16px; border-radius:14px;
+    border:1px solid var(--border); background:rgba(247,242,232,.03);
+    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  }
+  .ops-cell .k{ font-family:'Space Mono',monospace; font-size:8.5px; letter-spacing:.22em; color:var(--gray-dim); text-transform:uppercase; }
+  .ops-cell .v{ font-family:'Unbounded',sans-serif; font-weight:800; font-size:clamp(20px,2.2vw,28px); letter-spacing:-.04em; margin-top:8px; line-height:1; }
+  .ops-cell .v.hot{ background:var(--grad); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .ops-cell .v.acid{ color:var(--acid); }
+  .ops-cell .v.cy{ color:var(--cyan); }
+  .ops-cell .v.gn{ color:var(--green); }
+  .ops-cell::after{ content:''; position:absolute; left:0; right:0; bottom:0; height:2px; background:var(--grad); opacity:.5; }
+  @media (max-width:1100px){ .ops-rail{ grid-template-columns:repeat(3,1fr); } }
+  @media (max-width:560px){ .ops-rail{ grid-template-columns:1fr 1fr; } }
+
+  /* ===== BOARD ===== */
+  .board{
+    display:grid; grid-template-columns:repeat(4,minmax(270px,1fr)); gap:16px;
+    padding:18px var(--gut) 40px; max-width:1900px; margin-inline:auto;
+    align-items:start;
+  }
+  .board-col{
+    display:flex; flex-direction:column; min-width:0; border-radius:20px;
+    border:1px solid var(--border); background:rgba(10,7,5,.4);
+    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    padding:14px; min-height:60vh;
+  }
+  .board-col[data-status="Pending"]{ border-color:rgba(255,106,26,.3); }
+  .board-col[data-status="Preparing"]{ border-color:rgba(33,231,255,.22); }
+  .board-col[data-status="Ready"]{ border-color:rgba(53,224,138,.28); }
+
+  .board-col-head{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding-bottom:12px; margin-bottom:14px; border-bottom:1px solid var(--hair);
+  }
+  .board-col-head h2{
+    display:flex; align-items:center; gap:9px;
+    font-family:'Space Mono',monospace; font-weight:700; font-size:11px; letter-spacing:.22em; text-transform:uppercase;
+  }
+  .board-col-head h2 i{ width:7px; height:7px; border-radius:50%; background:var(--gray-dim); }
+  .board-col[data-status="Pending"] h2 i{ background:var(--orange); box-shadow:0 0 10px var(--orange); animation:blip 1.6s ease-in-out infinite; }
+  .board-col[data-status="Preparing"] h2 i{ background:var(--cyan); box-shadow:0 0 10px var(--cyan); }
+  .board-col[data-status="Ready"] h2 i{ background:var(--green); box-shadow:0 0 10px var(--green); }
+  .col-count{
+    font-family:'Space Mono',monospace; font-weight:700; font-size:11px;
+    min-width:26px; text-align:center; padding:3px 9px; border-radius:999px;
+    background:rgba(247,242,232,.08); color:var(--ink);
+  }
+  .board-col[data-status="Pending"] .col-count{ background:var(--orange); color:#160a03; }
+  .board-col[data-status="Preparing"] .col-count{ background:var(--cyan); color:#03181c; }
+  .board-col[data-status="Ready"] .col-count{ background:var(--green); color:#03180e; }
+
+  .card-list{ display:flex; flex-direction:column; gap:11px; flex:1; }
+
+  /* ===== TICKET ===== */
+  .order-card{
+    position:relative; overflow:hidden; padding:15px 15px 15px 18px; border-radius:14px;
+    border:1px solid var(--border-strong);
+    background:linear-gradient(160deg, rgba(28,19,13,.85), rgba(12,9,7,.75) 72%);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.04), 0 14px 34px rgba(0,0,0,.35);
+    animation:ticketIn .38s cubic-bezier(.16,1,.3,1);
+  }
+  @keyframes ticketIn{ from{ opacity:0; transform:translateY(-10px) scale(.97) } to{ opacity:1; transform:none } }
+  .order-card::before{
+    content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--grad);
+  }
+  .order-card[data-age="warm"]::before{ background:linear-gradient(180deg,var(--orange-2),var(--orange)); }
+  .order-card[data-age="late"]::before{ background:var(--hot); box-shadow:0 0 16px rgba(255,31,79,.7); }
+  .order-card[data-age="late"]{ border-color:rgba(255,31,79,.45); }
+  .order-card[data-age="late"] .order-age{ color:var(--hot); }
+
+  .order-card-top{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; }
+  .order-id{ font-family:'Space Mono',monospace; font-weight:700; font-size:11.5px; letter-spacing:.08em; color:var(--orange-2); }
+  .order-age{
+    display:flex; align-items:center; gap:6px;
+    font-family:'Space Mono',monospace; font-size:10px; letter-spacing:.12em; color:var(--gray-dim);
+  }
+  .order-customer{
+    display:inline-block; margin-bottom:11px; padding:4px 10px; border-radius:7px;
+    border:1px solid var(--border-strong); background:rgba(247,242,232,.05);
+    font-family:'Space Mono',monospace; font-size:11px; letter-spacing:.1em; color:var(--ink);
+  }
+  .order-items{ list-style:none; margin-bottom:11px; }
+  .order-items li{
+    display:flex; justify-content:space-between; gap:10px; padding:5px 0; font-size:13px;
+    border-bottom:1px dashed rgba(247,242,232,.06);
+  }
+  .order-items li:last-child{ border-bottom:0; }
+  .order-items .qty{
+    display:inline-grid; place-items:center; min-width:20px; height:20px; margin-right:9px; padding:0 5px;
+    border-radius:6px; background:rgba(255,106,26,.16); color:var(--orange-2);
+    font-family:'Space Mono',monospace; font-weight:700; font-size:10.5px;
+  }
+  .order-items li span:last-child{ font-family:'Space Mono',monospace; font-size:11.5px; color:var(--gray); }
+  .order-notes{
+    margin-bottom:11px; padding:9px 11px; border-radius:9px; line-height:1.45; font-size:12.5px; color:var(--ink);
+    background:rgba(255,176,32,.07); border:1px solid rgba(255,176,32,.25);
+  }
+  .order-notes b{ display:block; font-family:'Space Mono',monospace; font-size:8.5px; letter-spacing:.22em; color:var(--orange-2); margin-bottom:5px; text-transform:uppercase; }
+  .order-bottom{ display:flex; justify-content:space-between; align-items:center; gap:10px; }
+  .order-total{ font-family:'Space Mono',monospace; font-weight:700; font-size:14.5px; background:var(--grad-2); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .action-btn{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:10px 16px; border-radius:999px; border:none; cursor:pointer;
+    font-family:'Space Mono',monospace; font-weight:700; font-size:10.5px; letter-spacing:.14em;
+    background:var(--grad); color:#16090b; box-shadow:0 8px 22px rgba(255,31,79,.26);
+    transition:transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .18s;
+  }
+  .action-btn:hover{ transform:translateY(-2px); box-shadow:0 12px 30px rgba(255,31,79,.38); }
+  .action-btn svg{ width:12px; height:12px; }
+  .board-col[data-status="Preparing"] .action-btn{ background:var(--grad-acid); color:#03181c; box-shadow:0 8px 22px rgba(33,231,255,.24); }
+  .board-col[data-status="Ready"] .action-btn{ background:linear-gradient(112deg,#35e08a,#8fff4f); color:#03180e; box-shadow:0 8px 22px rgba(53,224,138,.26); }
+
+  .empty-col{
+    padding:34px 12px; text-align:center; border:1px dashed var(--border); border-radius:12px;
+    font-family:'Space Mono',monospace; font-size:10px; letter-spacing:.2em; color:var(--gray-dim); text-transform:uppercase;
+  }
+
+  @media (max-width:1200px){ .board{ grid-template-columns:1fr 1fr; } .board-col{ min-height:auto; } }
+  @media (max-width:700px){
+    .board{ grid-template-columns:1fr; padding:14px var(--gut) 30px; }
+    .action-btn{ width:100%; justify-content:center; padding:13px 16px; }
+    .order-bottom{ flex-direction:column; align-items:stretch; gap:10px; }
+    .order-total{ text-align:center; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="od-field" aria-hidden="true"></canvas>
+<div class="od-aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+<div class="od-vignette" aria-hidden="true"></div>
+<div class="od-scan" aria-hidden="true"></div>
+<div class="od-grain" aria-hidden="true"></div>
+
+<div class="od-hud" aria-hidden="true">
+  <span class="corner tl"></span><span class="corner tr"></span>
+  <span class="corner bl"></span><span class="corner br"></span>
+  <span class="rail l">KITCHEN OPS DECK · LINE 01</span>
+  <span class="rail r">TICKET FLOW · REAL TIME</span>
+</div>
+
+<div id="od-cursor" aria-hidden="true">
+  <span class="cur-ring"></span><span class="cur-dot"></span><span class="cur-label"></span>
+</div>
+
+<header class="console-head">
+  <div class="console-title">
+    <a href="../index.html" class="logo-badge" aria-label="Back to the storefront">
+      <span class="txt">OVER<br>DOSE<span class="rule"></span></span>
+    </a>
+    <h1>OVERDOSE<span>KITCHEN OPS DECK</span></h1>
+  </div>
+  <div class="console-meta">
+    <div class="sync-pill" id="sync-pill" data-mode="connecting">
+      <span class="sync-dot"></span><span id="sync-label">CONNECTING…</span>
+    </div>
+    <div class="clock-pill"><i></i><span data-clock>--:--:--</span></div>
+    <button class="kbd-btn" data-open-palette><span>COMMAND</span><kbd>⌘K</kbd></button>
+  </div>
+</header>
+
+<div class="ops-rail" id="ops-rail">
+  <div class="ops-cell"><div class="k">OPEN TICKETS</div><div class="v hot" id="m-open">0</div></div>
+  <div class="ops-cell"><div class="k">IN THE QUEUE</div><div class="v" id="m-pending">0</div></div>
+  <div class="ops-cell"><div class="k">ON THE LINE</div><div class="v cy" id="m-prep">0</div></div>
+  <div class="ops-cell"><div class="k">READY TO COLLECT</div><div class="v gn" id="m-ready">0</div></div>
+  <div class="ops-cell"><div class="k">OLDEST TICKET</div><div class="v acid" id="m-oldest">—</div></div>
+</div>
+
+<main class="board" id="board"></main>
+
+<!-- COMMAND PALETTE -->
+<div id="od-palette" aria-hidden="true">
+  <div class="pal-box" role="dialog" aria-label="Command palette">
+    <div class="pal-top">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 17l6-6-6-6"/><path d="M12 19h8"/></svg>
+      <input type="text" placeholder="Type a command…" aria-label="Command">
+      <span class="esc">ESC</span>
+    </div>
+    <div class="pal-list"></div>
+    <div class="pal-foot"><span>↑↓ NAVIGATE</span><span>↵ RUN</span><span>⌘K TOGGLE</span></div>
+  </div>
+</div>
+
+<script src="../js/fx.js"></script>
+<script src="../js/utils.js"></script>
+<script type="module" src="../js/firebase.js"></script>
+<script>
+  const ORDERS_KEY = 'overdose_orders';
+  const STATUS_FLOW = ['Pending', 'Preparing', 'Ready', 'Completed'];
+  const NEXT_STATUS = { Pending:'Preparing', Preparing:'Ready', Ready:'Completed' };
+  const ACTION_LABEL = { Pending:'ACCEPT', Preparing:'MARK READY', Ready:'COMPLETE' };
+
+  let latestOrders = [];
+  let lastSnapshot = '';
+  let knownIds = new Set();
+  let firstPaint = true;
+
+  // 'connecting' -> 'live' (cross-device via Firestore) or 'local'
+  // (this browser's localStorage only).
+  let ordersMode = 'connecting';
+
+  function getOrders(){ return readStorage(ORDERS_KEY, []); }
+  function saveOrders(orders){ writeStorage(ORDERS_KEY, orders); }
+
+  function setSyncStatus(mode){
+    ordersMode = mode;
+    const pill = document.getElementById('sync-pill');
+    const label = document.getElementById('sync-label');
+    if(!pill || !label) return;
+    pill.dataset.mode = mode;
+    label.textContent = mode === 'live' ? 'LIVE SYNC · ALL DEVICES'
+                      : mode === 'local' ? 'LOCAL DEVICE ONLY'
+                      : 'CONNECTING…';
+  }
+
+  function setOrders(orders){
+    latestOrders = orders || [];
+    detectNewTickets();
+    renderBoard();
+    renderMetrics();
+  }
+
+  // Announce genuinely new tickets so the line notices them arriving.
+  function detectNewTickets(){
+    const ids = new Set(latestOrders.map(o => o.orderId));
+    if(firstPaint){ knownIds = ids; firstPaint = false; return; }
+    let fresh = 0;
+    ids.forEach(id => { if(!knownIds.has(id)) fresh++; });
+    knownIds = ids;
+    if(fresh > 0){
+      showToast(fresh === 1 ? 'New ticket on the board' : fresh + ' new tickets', 'ok');
+      if(window.OD && OD.energy) OD.energy(1.2);
+    }
+  }
+
+  function ageBucket(order){
+    const mins = minutesSince(order.createdAt);
+    if(order.status === 'Completed') return 'done';
+    if(mins >= 12) return 'late';
+    if(mins >= 6) return 'warm';
+    return 'fresh';
+  }
+
+  function advanceOrder(orderId){
+    const order = latestOrders.find(o => o.orderId === orderId);
+    if(!order) return;
+    const next = NEXT_STATUS[order.status];
+    if(!next) return;
+
+    if(window.OD && OD.energy) OD.energy(0.7);
+
+    if(ordersMode === 'live' && order.docId && window.OverdoseFirebase){
+      // The onSnapshot listener pushes the update back once Firestore
+      // confirms the write, so no local mutation is needed here.
+      window.OverdoseFirebase.updateOrderStatus(order.docId, next).catch(err => {
+        console.warn('Kitchen: status update failed:', err.message);
+        showToast('Could not update — check connection', 'err');
+      });
+      return;
+    }
+
+    const orders = getOrders();
+    const local = orders.find(o => o.orderId === orderId);
+    if(local) local.status = next;
+    saveOrders(orders);
+    setOrders(orders);
+  }
+  window.advanceOrder = advanceOrder;
+
+  function buildOrderCardInner(order){
+    const itemsHtml = order.items.map(item =>
+      `<li><span><span class="qty">${item.qty}</span>${escapeHtml(item.name)}</span><span>${formatPrice(item.price * item.qty)}</span></li>`
+    ).join('');
+    const notesHtml = order.notes
+      ? `<div class="order-notes"><b>Note</b>${escapeHtml(order.notes)}</div>` : '';
+    const label = ACTION_LABEL[order.status];
+    const actionHtml = label
+      ? `<button class="action-btn" onclick="advanceOrder('${order.orderId}')">
+           ${label}
+           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+         </button>` : '';
+    const mins = minutesSince(order.createdAt);
+
+    return `
+      <div class="order-card-top">
+        <span class="order-id">${escapeHtml(order.orderId)}</span>
+        <span class="order-age"><span>${formatTime(order.createdAt)}</span>·<span>${mins}m</span></span>
+      </div>
+      <div class="order-customer">${escapeHtml(order.customerName)}</div>
+      <ul class="order-items">${itemsHtml}</ul>
+      ${notesHtml}
+      <div class="order-bottom">
+        <span class="order-total">${formatPrice(order.total)}</span>
+        ${actionHtml}
+      </div>`;
+  }
+
+  function buildBoardShell(){
+    document.getElementById('board').innerHTML = STATUS_FLOW.map(status => `
+      <section class="board-col" data-status="${status}">
+        <div class="board-col-head">
+          <h2><i></i>${status}</h2>
+          <span class="col-count">0</span>
+        </div>
+        <div class="card-list"></div>
+      </section>`).join('');
+    // The shell was just replaced, so the last-render guard is stale —
+    // clear it or renderBoard() would skip repainting an unchanged list
+    // and leave the columns empty.
+    lastSnapshot = '';
+    STATUS_FLOW.forEach(status => renderColumn(status, latestOrders));
+  }
+
+  // Reconciles one column against the latest orders instead of replacing
+  // innerHTML wholesale — unchanged cards keep their DOM node, so no
+  // flicker and no replayed entrance animation.
+  function renderColumn(status, orders){
+    const column = document.querySelector(`.board-col[data-status="${status}"]`);
+    if(!column) return;
+    const listEl = column.querySelector('.card-list');
+    const countEl = column.querySelector('.col-count');
+
+    const columnOrders = orders
+      .filter(o => o.status === status)
+      .sort((a, b) => toJsDate(a.createdAt) - toJsDate(b.createdAt));
+
+    countEl.textContent = columnOrders.length;
+
+    if(!columnOrders.length){
+      if(!listEl.querySelector('.empty-col')) listEl.innerHTML = `<div class="empty-col">No tickets</div>`;
+      return;
+    }
+    const emptyEl = listEl.querySelector('.empty-col');
+    if(emptyEl) emptyEl.remove();
+
+    const existing = new Map();
+    listEl.querySelectorAll('.order-card').forEach(el => existing.set(el.dataset.orderId, el));
+
+    let prevEl = null;
+    columnOrders.forEach(order => {
+      let el = existing.get(order.orderId);
+      if(el){
+        existing.delete(order.orderId);
+        el.dataset.age = ageBucket(order);
+      }else{
+        el = document.createElement('div');
+        el.className = 'order-card';
+        el.dataset.orderId = order.orderId;
+        el.dataset.age = ageBucket(order);
+        el.innerHTML = buildOrderCardInner(order);
+      }
+      const expectedNext = prevEl ? prevEl.nextElementSibling : listEl.firstElementChild;
+      if(expectedNext !== el) listEl.insertBefore(el, expectedNext);
+      prevEl = el;
+    });
+
+    existing.forEach(el => el.remove());
+  }
+
+  function renderBoard(){
+    const snapshot = JSON.stringify(latestOrders);
+    if(snapshot === lastSnapshot) return;
+    lastSnapshot = snapshot;
+    STATUS_FLOW.forEach(status => renderColumn(status, latestOrders));
+  }
+
+  function renderMetrics(){
+    const open = latestOrders.filter(o => o.status !== 'Completed');
+    const by = s => latestOrders.filter(o => o.status === s).length;
+    const oldest = open.reduce((max, o) => Math.max(max, minutesSince(o.createdAt)), 0);
+
+    document.getElementById('m-open').textContent = open.length;
+    document.getElementById('m-pending').textContent = by('Pending');
+    document.getElementById('m-prep').textContent = by('Preparing');
+    document.getElementById('m-ready').textContent = by('Ready');
+    document.getElementById('m-oldest').textContent = open.length ? oldest + 'm' : '—';
+  }
+
+  // Ages tick up without needing a data change.
+  function refreshAges(){
+    document.querySelectorAll('.order-card').forEach(el => {
+      const order = latestOrders.find(o => o.orderId === el.dataset.orderId);
+      if(!order) return;
+      el.dataset.age = ageBucket(order);
+      const ageEl = el.querySelector('.order-age');
+      if(ageEl) ageEl.innerHTML = `<span>${formatTime(order.createdAt)}</span>·<span>${minutesSince(order.createdAt)}m</span>`;
+    });
+    renderMetrics();
+  }
+
+  window.OD_COMMANDS = [
+    { icon:'⌂', label:'Back to storefront', hint:'NAV', run:() => location.href = '../index.html' },
+    { icon:'⚗', label:'Admin console', hint:'NAV', run:() => location.href = '../admin/admin.html' },
+    { icon:'↻', label:'Force refresh', hint:'ACTION', run:() => location.reload() },
+    { icon:'▣', label:'Accept the oldest pending ticket', hint:'ACTION', keywords:'accept next', run:() => {
+        const next = latestOrders.filter(o => o.status === 'Pending').sort((a,b) => toJsDate(a.createdAt) - toJsDate(b.createdAt))[0];
+        if(next) advanceOrder(next.orderId); else showToast('Nothing pending', 'warn');
+      } }
+  ];
+
+  // Same-device fallback: another tab on this browser writing localStorage.
+  window.addEventListener('storage', (e) => {
+    if(e.key === ORDERS_KEY && ordersMode === 'local') setOrders(getOrders());
+  });
+
+  async function initOrdersFeed(){
+    if(!window.OverdoseFirebase || typeof window.OverdoseFirebase.listenForOrders !== 'function'){
+      setSyncStatus('local'); setOrders(getOrders()); startLocalPolling(); return;
+    }
+    try{
+      await window.OverdoseFirebase.listenForOrders(
+        (orders) => { setSyncStatus('live'); setOrders(orders); },
+        (err) => {
+          console.warn('Kitchen: Firestore sync unavailable, local orders only.', err && err.message);
+          setSyncStatus('local'); setOrders(getOrders()); startLocalPolling();
+        }
+      );
+    }catch(err){
+      console.warn('Kitchen: could not reach Firestore, local orders only.', err && err.message);
+      setSyncStatus('local'); setOrders(getOrders()); startLocalPolling();
+    }
+  }
+
+  let localPollTimer = null;
+  function startLocalPolling(){
+    if(localPollTimer) return;
+    localPollTimer = setInterval(() => { if(ordersMode === 'local') setOrders(getOrders()); }, 2000);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    buildBoardShell();
+    setInterval(refreshAges, 20000);
+    initOrdersFeed();
+  });
+</script>
+</body>
+</html>

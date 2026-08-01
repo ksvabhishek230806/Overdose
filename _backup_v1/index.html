@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>overdose — good drinks. good overdose.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700;800&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/cart.css">
+</head>
+<body class="lock">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs><linearGradient id="doseGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ff6a1a"/><stop offset="100%" stop-color="#ff2d55"/></linearGradient></defs>
+</svg>
+
+<div class="grain" aria-hidden="true"></div>
+<div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
+<div class="cursor-dot" id="cursor-dot" aria-hidden="true"></div>
+<div class="cursor-ring" id="cursor-ring" aria-hidden="true"></div>
+
+<!-- FIRST-LOAD PRELOADER (separate from the logo-click brand-splash below) -->
+<div class="preloader" id="preloader" aria-hidden="true">
+  <div class="dose-ring">
+    <svg viewBox="0 0 100 100">
+      <circle class="track" cx="50" cy="50" r="45"/>
+      <circle class="fill" id="dose-fill" cx="50" cy="50" r="45"/>
+    </svg>
+    <div class="dose-pct" id="dose-pct">0%</div>
+  </div>
+  <div class="dose-label">loading your <b>dose</b> of overdose</div>
+</div>
+
+<div class="bg-blobs" aria-hidden="true">
+  <div class="blob-wrap" id="blob-wrap-1"><div class="blob blob-1"></div></div>
+  <div class="blob-wrap" id="blob-wrap-2"><div class="blob blob-2"></div></div>
+  <div class="blob-wrap" id="blob-wrap-3"><div class="blob blob-3"></div></div>
+</div>
+<div class="vignette" aria-hidden="true"></div>
+
+<header>
+  <div class="brand" id="brand-trigger" role="button" tabindex="0" aria-label="Play overdose intro and open the menu">
+    <div class="logo-badge">
+      <div class="txt">OVER<br>DOSE<span class="rule"></span></div>
+    </div>
+    <div class="brand-name">overdose</div>
+  </div>
+  <nav class="links">
+    <button class="navlink active" id="nav-visit" onclick="showPage('home')">VISIT</button>
+    <button class="navlink" id="nav-menu" onclick="showPage('menu')">MENU</button>
+  </nav>
+  <button class="share-btn" onclick="shareMenu()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></svg>
+    SHARE MENU
+  </button>
+  <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Open menu" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<!-- MOBILE NAV PANEL -->
+<div class="mobile-nav" id="mobile-nav">
+  <button class="mobile-navlink active" id="mnav-visit" onclick="showPage('home'); closeMobileNav();">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>
+    VISIT
+  </button>
+  <button class="mobile-navlink" id="mnav-menu" onclick="showPage('menu'); closeMobileNav();">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    MENU
+  </button>
+  <button class="mobile-navlink" onclick="shareMenu(); closeMobileNav();">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></svg>
+    SHARE MENU
+  </button>
+</div>
+<div class="mobile-nav-overlay" id="mobile-nav-overlay"></div>
+
+<!-- MENU ENTRANCE FLASH -->
+<div class="menu-flash" id="menu-flash" aria-hidden="true"></div>
+
+<!-- HOME PAGE -->
+<section class="page active" id="page-home">
+  <div class="hero">
+    <div class="hero-parallax" id="hero-parallax">
+      <div class="status"><span class="dot"></span> OPEN TODAY &nbsp;·&nbsp; 10AM–11:30PM</div>
+      <div class="hero-grid">
+        <div>
+          <h1 class="headline">
+            <span class="line1"><span class="word"><span>Good</span></span> <span class="word"><span>drinks.</span></span></span>
+            <span class="line2"><span class="word"><span>Good</span></span></span>
+            <span class="line3"><span class="word"><span>overdose.</span></span></span>
+          </h1>
+          <p class="hero-copy">Hot brews for the slow moments, thickshakes for the sweet ones, and enough energy to keep the night going.</p>
+          <div class="cta-row">
+            <button class="cta" onclick="showPage('menu')">
+              <span>SEE THE MENU</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+            <a class="cta-ghost" href="#stats">
+              why overdose
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+            </a>
+          </div>
+        </div>
+        <div class="side-card" id="side-card">
+          <div class="ring r1"></div>
+          <div class="ring r2"></div>
+          <div class="side-top">
+            <span>SINCE 2018</span>
+            <span class="tag-right">CAFE / DRINKS / MART ENERGY</span>
+          </div>
+          <div>
+            <div class="side-title">take a little<br><span class="accent">break.</span></div>
+            <div class="side-copy">Hot brews, cold shakes, and whatever you picked up for the road.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ribbon-wrap" data-reveal>
+    <div class="ribbon">
+      <div class="ribbon-track">
+        <span>HOT BREWS</span><span>THICKSHAKES</span><span>GOOD OVERDOSE</span><span>SINCE 2018</span>
+        <span>HOT BREWS</span><span>THICKSHAKES</span><span>GOOD OVERDOSE</span><span>SINCE 2018</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats" id="stats">
+    <div class="stat-card" data-reveal><div class="stat-num" data-count="14">0</div><div class="stat-label">Drinks on the menu</div></div>
+    <div class="stat-card" data-reveal><div class="stat-num" data-count="2018">0</div><div class="stat-label">Pouring since</div></div>
+    <div class="stat-card" data-reveal><div class="stat-num" data-count="13" data-suffix=".5hrs">0</div><div class="stat-label">Open every day</div></div>
+    <div class="stat-card" data-reveal><div class="stat-num" data-count="100" data-suffix="%">0</div><div class="stat-label">No chill, all flavour</div></div>
+  </div>
+
+  <div class="cta-banner" data-reveal>
+    <div class="cta-banner-inner">
+      <h2>Ready for your <span class="accent">next dose?</span></h2>
+      <p>Fourteen drinks. Two moods: warm and slow, or cold and loaded.</p>
+      <button class="cta" onclick="showPage('menu')">
+        <span>ORDER NOW</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- MENU PAGE -->
+<section class="page" id="page-menu">
+  <div class="menu-wrap">
+    <div class="menu-head">
+      <div class="menu-eyebrow">The full lineup</div>
+      <div class="menu-title">Pick your <span class="accent">poison.</span></div>
+    </div>
+
+    <div class="tabs-outer">
+      <div class="tabs" id="tabs">
+        <div class="tab-indicator" id="tab-indicator"></div>
+        <button class="tab active" data-filter="all" onclick="filterMenu('all', this)">ALL ITEMS</button>
+        <button class="tab" data-filter="hot" onclick="filterMenu('hot', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9h12l-1 10a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 9z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></svg>
+          HOT BREWS
+        </button>
+        <button class="tab" data-filter="shake" onclick="filterMenu('shake', this)">SHAKE THICKSHAKES</button>
+      </div>
+    </div>
+
+    <div class="menu-columns">
+      <div class="menu-col" data-section="hot">
+        <div class="col-head">
+          <div class="col-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9h12l-1 10a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 9z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></svg>
+          </div>
+          <div class="col-title">Hot Brews</div>
+        </div>
+        <div class="col-meta"><span>WARM, EASY, FAMILIAR</span><span id="hot-count">4 items</span></div>
+        <div class="item-list"></div>
+      </div>
+
+      <div class="menu-col" data-section="shake">
+        <div class="col-head">
+          <div class="col-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3h8l-1 4H9L8 3z"/><path d="M8 7l1.5 12a1 1 0 0 0 1 .9h3a1 1 0 0 0 1-.9L16 7"/><path d="M9 12h6"/></svg>
+          </div>
+          <div class="col-title">Thickshakes</div>
+        </div>
+        <div class="col-meta"><span>COLD, CREAMY, LOADED</span><span id="shake-count">10 items</span></div>
+        <div class="item-list"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <span>OVERDOSE © 2026</span>
+  <span>CAFE · DRINKS · MART ENERGY</span>
+</footer>
+
+<!-- FLOATING CART -->
+<button class="floating-cart" id="floating-cart-btn">
+  <div class="fc-icon">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1.2"/><circle cx="19" cy="21" r="1.2"/><path d="M2.5 3h2.4l2.4 12.4a2 2 0 0 0 2 1.6h8.3a2 2 0 0 0 2-1.6l1.6-8.4H6"/></svg>
+    <span class="fc-count" id="fc-count">0</span>
+  </div>
+  <div>
+    <span class="fc-total" id="fc-total">₹0</span>
+    <span class="fc-label">VIEW CART</span>
+  </div>
+</button>
+
+<!-- CART DRAWER -->
+<div class="cart-overlay" id="cart-overlay"></div>
+<aside class="cart-drawer" id="cart-drawer">
+  <div class="cart-header">
+    <h2>Your Order</h2>
+    <button class="cart-close" id="cart-close-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+
+  <div class="cart-items" id="cart-items"></div>
+
+  <div class="cart-summary">
+    <div class="summary-row"><span>Subtotal</span><span id="cart-subtotal">₹0</span></div>
+  </div>
+
+  <div class="cart-form">
+    <div class="field-group">
+      <label>CUSTOMER NAME *</label>
+      <input type="text" id="customer-name" placeholder="Enter your name" required aria-required="true" maxlength="60">
+      <span class="field-error" id="customer-name-error">Please enter your name to place an order.</span>
+    </div>
+    <div class="field-group">
+      <label>SPECIAL INSTRUCTIONS</label>
+      <textarea id="order-notes" placeholder="Any notes for the kitchen (optional)"></textarea>
+    </div>
+  </div>
+
+  <div class="cart-summary">
+    <div class="summary-row total"><span>Total</span><span class="amt" id="cart-total">₹0</span></div>
+  </div>
+
+  <div class="cart-footer">
+    <button class="place-order-btn" id="place-order-btn" disabled>
+      <span class="spinner"></span>
+      <span class="btn-label">PLACE ORDER</span>
+    </button>
+  </div>
+</aside>
+
+<!-- SUCCESS MODAL -->
+<div class="modal-overlay" id="success-modal-overlay">
+  <div class="success-modal">
+    <div class="success-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
+    </div>
+    <h3>Order placed successfully.</h3>
+    <p>The kitchen has received your order and will get started shortly.</p>
+    <div class="order-id" id="success-order-id"></div>
+    <button class="modal-close-btn" id="success-modal-close">CONTINUE</button>
+  </div>
+</div>
+
+<!-- BRAND SPLASH INTRO -->
+<div class="brand-splash" id="brand-splash" aria-hidden="true">
+  <div class="splash-rings">
+    <span class="splash-ring ring-a"></span>
+    <span class="splash-ring ring-b"></span>
+    <span class="splash-ring ring-c"></span>
+  </div>
+  <div class="splash-mark">
+    <div class="splash-badge">
+      <div class="txt">OVER<br>DOSE<span class="rule"></span></div>
+    </div>
+  </div>
+  <div class="splash-word">
+    <span>O</span><span>V</span><span>E</span><span>R</span><span>D</span><span>O</span><span>S</span><span>E</span>
+  </div>
+  <div class="splash-tag">good drinks. good overdose.</div>
+</div>
+
+<script src="js/utils.js"></script>
+<script src="js/menu.js"></script>
+<script src="js/cart.js"></script>
+<script type="module" src="js/firebase.js"></script>
+<script src="js/app.js"></script>
+<script src="js/motion.js"></script>
+
+</body>
+</html>
