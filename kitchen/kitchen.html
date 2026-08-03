@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#050403">
+<meta name="theme-color" content="#F7F2E6">
 <title>overdose — Kitchen Ops Deck</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,7 +19,7 @@
   }
   .ops-cell{
     position:relative; overflow:hidden; padding:14px 16px; border-radius:14px;
-    border:1px solid var(--border); background:rgba(247,242,232,.03);
+    border:1px solid var(--border); background:rgba(255,253,247,.55);
     backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
   }
   .ops-cell .k{ font-family:'Space Mono',monospace; font-size:8.5px; letter-spacing:.22em; color:var(--gray-dim); text-transform:uppercase; }
@@ -40,13 +40,13 @@
   }
   .board-col{
     display:flex; flex-direction:column; min-width:0; border-radius:20px;
-    border:1px solid var(--border); background:rgba(10,7,5,.4);
+    border:1px solid var(--border); background:rgba(239,230,210,.4);
     backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
     padding:14px; min-height:60vh;
   }
-  .board-col[data-status="Pending"]{ border-color:rgba(255,106,26,.3); }
-  .board-col[data-status="Preparing"]{ border-color:rgba(33,231,255,.22); }
-  .board-col[data-status="Ready"]{ border-color:rgba(53,224,138,.28); }
+  .board-col[data-status="Pending"]{ border-color:rgba(194,83,13,.28); }
+  .board-col[data-status="Preparing"]{ border-color:rgba(12,122,143,.24); }
+  .board-col[data-status="Ready"]{ border-color:rgba(22,122,76,.26); }
 
   .board-col-head{
     display:flex; align-items:center; justify-content:space-between; gap:10px;
@@ -63,11 +63,11 @@
   .col-count{
     font-family:'Space Mono',monospace; font-weight:700; font-size:11px;
     min-width:26px; text-align:center; padding:3px 9px; border-radius:999px;
-    background:rgba(247,242,232,.08); color:var(--ink);
+    background:rgba(32,24,17,.08); color:var(--ink);
   }
-  .board-col[data-status="Pending"] .col-count{ background:var(--orange); color:#160a03; }
-  .board-col[data-status="Preparing"] .col-count{ background:var(--cyan); color:#03181c; }
-  .board-col[data-status="Ready"] .col-count{ background:var(--green); color:#03180e; }
+  .board-col[data-status="Pending"] .col-count{ background:var(--orange); color:#fdf6ea; }
+  .board-col[data-status="Preparing"] .col-count{ background:var(--cyan); color:#f2fbfc; }
+  .board-col[data-status="Ready"] .col-count{ background:var(--green); color:#f2fbf6; }
 
   .card-list{ display:flex; flex-direction:column; gap:11px; flex:1; }
 
@@ -75,8 +75,8 @@
   .order-card{
     position:relative; overflow:hidden; padding:15px 15px 15px 18px; border-radius:14px;
     border:1px solid var(--border-strong);
-    background:linear-gradient(160deg, rgba(28,19,13,.85), rgba(12,9,7,.75) 72%);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.04), 0 14px 34px rgba(0,0,0,.35);
+    background:linear-gradient(160deg, rgba(255,253,247,.9), rgba(240,231,211,.8) 72%);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.55), 0 10px 24px rgba(32,24,17,.1);
     animation:ticketIn .38s cubic-bezier(.16,1,.3,1);
   }
   @keyframes ticketIn{ from{ opacity:0; transform:translateY(-10px) scale(.97) } to{ opacity:1; transform:none } }
@@ -84,8 +84,8 @@
     content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--grad);
   }
   .order-card[data-age="warm"]::before{ background:linear-gradient(180deg,var(--orange-2),var(--orange)); }
-  .order-card[data-age="late"]::before{ background:var(--hot); box-shadow:0 0 16px rgba(255,31,79,.7); }
-  .order-card[data-age="late"]{ border-color:rgba(255,31,79,.45); }
+  .order-card[data-age="late"]::before{ background:var(--hot); box-shadow:0 0 12px rgba(184,18,63,.5); }
+  .order-card[data-age="late"]{ border-color:rgba(184,18,63,.4); }
   .order-card[data-age="late"] .order-age{ color:var(--hot); }
 
   .order-card-top{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; }
@@ -96,24 +96,24 @@
   }
   .order-customer{
     display:inline-block; margin-bottom:11px; padding:4px 10px; border-radius:7px;
-    border:1px solid var(--border-strong); background:rgba(247,242,232,.05);
+    border:1px solid var(--border-strong); background:rgba(32,24,17,.05);
     font-family:'Space Mono',monospace; font-size:11px; letter-spacing:.1em; color:var(--ink);
   }
   .order-items{ list-style:none; margin-bottom:11px; }
   .order-items li{
     display:flex; justify-content:space-between; gap:10px; padding:5px 0; font-size:13px;
-    border-bottom:1px dashed rgba(247,242,232,.06);
+    border-bottom:1px dashed rgba(32,24,17,.08);
   }
   .order-items li:last-child{ border-bottom:0; }
   .order-items .qty{
     display:inline-grid; place-items:center; min-width:20px; height:20px; margin-right:9px; padding:0 5px;
-    border-radius:6px; background:rgba(255,106,26,.16); color:var(--orange-2);
+    border-radius:6px; background:rgba(194,83,13,.14); color:var(--orange-2);
     font-family:'Space Mono',monospace; font-weight:700; font-size:10.5px;
   }
   .order-items li span:last-child{ font-family:'Space Mono',monospace; font-size:11.5px; color:var(--gray); }
   .order-notes{
     margin-bottom:11px; padding:9px 11px; border-radius:9px; line-height:1.45; font-size:12.5px; color:var(--ink);
-    background:rgba(255,176,32,.07); border:1px solid rgba(255,176,32,.25);
+    background:rgba(156,106,8,.08); border:1px solid rgba(156,106,8,.22);
   }
   .order-notes b{ display:block; font-family:'Space Mono',monospace; font-size:8.5px; letter-spacing:.22em; color:var(--orange-2); margin-bottom:5px; text-transform:uppercase; }
   .order-bottom{ display:flex; justify-content:space-between; align-items:center; gap:10px; }
@@ -122,13 +122,13 @@
     display:inline-flex; align-items:center; gap:8px;
     padding:10px 16px; border-radius:999px; border:none; cursor:pointer;
     font-family:'Space Mono',monospace; font-weight:700; font-size:10.5px; letter-spacing:.14em;
-    background:var(--grad); color:#16090b; box-shadow:0 8px 22px rgba(255,31,79,.26);
+    background:var(--grad); color:#fdf6ea; box-shadow:0 8px 18px rgba(184,18,63,.2);
     transition:transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .18s;
   }
-  .action-btn:hover{ transform:translateY(-2px); box-shadow:0 12px 30px rgba(255,31,79,.38); }
+  .action-btn:hover{ transform:translateY(-2px); box-shadow:0 10px 22px rgba(184,18,63,.26); }
   .action-btn svg{ width:12px; height:12px; }
-  .board-col[data-status="Preparing"] .action-btn{ background:var(--grad-acid); color:#03181c; box-shadow:0 8px 22px rgba(33,231,255,.24); }
-  .board-col[data-status="Ready"] .action-btn{ background:linear-gradient(112deg,#35e08a,#8fff4f); color:#03180e; box-shadow:0 8px 22px rgba(53,224,138,.26); }
+  .board-col[data-status="Preparing"] .action-btn{ background:var(--grad-acid); color:#f2fbfc; box-shadow:0 8px 18px rgba(12,122,143,.2); }
+  .board-col[data-status="Ready"] .action-btn{ background:linear-gradient(112deg,#167A4C,#3fa86b); color:#f2fbf6; box-shadow:0 8px 18px rgba(22,122,76,.22); }
 
   .empty-col{
     padding:34px 12px; text-align:center; border:1px dashed var(--border); border-radius:12px;
@@ -142,9 +142,47 @@
     .order-bottom{ flex-direction:column; align-items:stretch; gap:10px; }
     .order-total{ text-align:center; }
   }
+
+  /* ===== STAFF AUTH GATE ===== */
+  body:not(.auth-ok) .console-head,
+  body:not(.auth-ok) .ops-rail,
+  body:not(.auth-ok) main{ display:none; }
+
+  #auth-gate{
+    display:none; position:fixed; inset:0; z-index:80; align-items:center; justify-content:center;
+    padding:24px; background:rgba(247,242,230,.88); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+  }
+  body.auth-checking #auth-gate, body.auth-locked #auth-gate, body.auth-error #auth-gate{ display:flex; }
+  .gate-box{
+    width:100%; max-width:360px; border:1px solid var(--border-strong); border-radius:16px;
+    background:rgba(255,253,247,.95); box-shadow:0 20px 44px rgba(32,24,17,.14); padding:28px 26px;
+  }
+  .gate-kicker{ font-family:'Space Mono',monospace; font-size:10px; letter-spacing:.2em; color:var(--gray-dim); text-transform:uppercase; margin:0 0 6px; }
+  .gate-lede{ font-family:'Unbounded',sans-serif; font-weight:700; font-size:18px; margin:0 0 20px; }
+  .gate-field{ margin-bottom:12px; display:flex; flex-direction:column; gap:6px; }
+  .gate-field label{ font-family:'Space Mono',monospace; font-size:8.5px; letter-spacing:.18em; color:var(--gray-dim); text-transform:uppercase; }
+  .gate-field input{
+    padding:11px 12px; border-radius:10px; color:var(--ink); background:rgba(32,24,17,.03);
+    border:1px solid var(--border-strong); font-family:'Inter',sans-serif; font-size:13.5px;
+  }
+  .gate-field input:focus{ outline:none; border-color:var(--orange); background:rgba(194,83,13,.06); box-shadow:0 0 0 3px rgba(194,83,13,.1); }
+  .gate-submit{
+    width:100%; margin-top:6px; padding:12px 16px; border-radius:10px; border:none; cursor:pointer;
+    font-family:'Space Mono',monospace; font-weight:700; font-size:10.5px; letter-spacing:.14em;
+    background:var(--grad); color:#fdf6ea;
+  }
+  .gate-submit:disabled{ opacity:.6; cursor:default; }
+  .gate-error{ margin-top:12px; font-family:'Space Mono',monospace; font-size:11px; line-height:1.5; color:var(--hot); display:none; }
+  .gate-error.show{ display:block; }
+  .gate-status{ font-family:'Space Mono',monospace; font-size:10.5px; color:var(--gray-dim); line-height:1.6; text-align:center; display:none; }
+  .signout-btn{
+    font-family:'Space Mono',monospace; font-size:9.5px; letter-spacing:.12em; padding:7px 12px;
+    border-radius:999px; border:1px solid var(--border-strong); background:transparent; color:var(--gray-dim); cursor:pointer;
+  }
+  .signout-btn:hover{ color:var(--ink); border-color:var(--orange); }
 </style>
 </head>
-<body>
+<body class="auth-checking">
 
 <canvas id="od-field" aria-hidden="true"></canvas>
 <div class="od-aurora" aria-hidden="true"><i></i><i></i><i></i></div>
@@ -176,8 +214,30 @@
     </div>
     <div class="clock-pill"><i></i><span data-clock>--:--:--</span></div>
     <button class="kbd-btn" data-open-palette><span>COMMAND</span><kbd>⌘K</kbd></button>
+    <button class="signout-btn" id="signout-btn" data-cursor="SIGN OUT">SIGN OUT</button>
   </div>
 </header>
+
+<!-- STAFF AUTH GATE -->
+<div id="auth-gate">
+  <div class="gate-box">
+    <p class="gate-kicker">STAFF ACCESS · KITCHEN OPS DECK</p>
+    <p class="gate-lede">Sign in to open the board</p>
+    <form id="gate-form">
+      <div class="gate-field">
+        <label for="gate-email">EMAIL</label>
+        <input type="email" id="gate-email" autocomplete="username" required>
+      </div>
+      <div class="gate-field">
+        <label for="gate-password">PASSWORD</label>
+        <input type="password" id="gate-password" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="gate-submit" id="gate-submit-btn">SIGN IN</button>
+      <p class="gate-error" id="gate-error"></p>
+    </form>
+    <p class="gate-status" id="gate-status"></p>
+  </div>
+</div>
 
 <div class="ops-rail" id="ops-rail">
   <div class="ops-cell"><div class="k">OPEN TICKETS</div><div class="v hot" id="m-open">0</div></div>
@@ -448,10 +508,89 @@
     localPollTimer = setInterval(() => { if(ordersMode === 'local') setOrders(getOrders()); }, 2000);
   }
 
+  /* ================= STAFF AUTH GATE ================= */
+  function setAuthState(state){
+    document.body.classList.remove('auth-checking', 'auth-locked', 'auth-error', 'auth-ok');
+    document.body.classList.add('auth-' + state);
+  }
+
+  function initAuthGate(){
+    const form = document.getElementById('gate-form');
+    const emailEl = document.getElementById('gate-email');
+    const passwordEl = document.getElementById('gate-password');
+    const errorEl = document.getElementById('gate-error');
+    const statusEl = document.getElementById('gate-status');
+    const submitBtn = document.getElementById('gate-submit-btn');
+    const signoutBtn = document.getElementById('signout-btn');
+
+    function showError(message){
+      errorEl.textContent = message;
+      errorEl.classList.add('show');
+    }
+    function clearError(){
+      errorEl.textContent = '';
+      errorEl.classList.remove('show');
+    }
+    function showStatus(message){
+      statusEl.textContent = message;
+      statusEl.style.display = message ? 'block' : 'none';
+    }
+
+    if(form){
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearError();
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'SIGNING IN…';
+        try{
+          await window.OverdoseFirebase.signIn(emailEl.value.trim(), passwordEl.value);
+          // onAuthChange below flips the state to auth-ok once Firebase confirms.
+        }catch(err){
+          showError(err && err.message ? err.message : 'Sign-in failed.');
+        }finally{
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'SIGN IN';
+        }
+      });
+    }
+
+    if(signoutBtn){
+      signoutBtn.addEventListener('click', () => {
+        window.OverdoseFirebase.signOut().catch(err => console.warn('Sign out failed:', err.message));
+      });
+    }
+
+    if(!window.OverdoseFirebase || typeof window.OverdoseFirebase.onAuthChange !== 'function'){
+      setAuthState('error');
+      if(form) form.style.display = 'none';
+      showStatus('Auth unavailable — Firebase failed to load. Reload the page.');
+      return;
+    }
+
+    window.OverdoseFirebase.onAuthChange(
+      (user) => {
+        if(user){
+          setAuthState('ok');
+        }else{
+          setAuthState('locked');
+          if(form) form.style.display = '';
+          showStatus('');
+        }
+      },
+      (err) => {
+        setAuthState('error');
+        if(form) form.style.display = 'none';
+        showStatus("Can't verify access right now — check your connection and reload.");
+        console.warn('Kitchen: auth error:', err && err.message);
+      }
+    );
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     buildBoardShell();
     setInterval(refreshAges, 20000);
     initOrdersFeed();
+    initAuthGate();
   });
 </script>
 </body>

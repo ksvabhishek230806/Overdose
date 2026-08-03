@@ -98,24 +98,26 @@
         f += 0.30 * exp(-md*2.6) * (0.55 + e*1.6);
         f += e * 0.10;
 
-        vec3 base  = vec3(0.016, 0.012, 0.011);
-        vec3 ember = vec3(1.00, 0.34, 0.06);
-        vec3 hot   = vec3(1.00, 0.12, 0.33);
-        vec3 acid  = vec3(0.66, 1.00, 0.18);
+        vec3 base  = vec3(0.965, 0.947, 0.902);
+        vec3 ember = vec3(0.760, 0.325, 0.051);
+        vec3 hot   = vec3(0.722, 0.071, 0.247);
+        vec3 acid  = vec3(0.369, 0.478, 0.071);
 
-        vec3 col = mix(base, ember, smoothstep(0.34, 0.86, f));
-        col = mix(col, hot,  smoothstep(0.56, 1.02, f) * 0.85);
-        col += acid * smoothstep(0.82, 1.05, f) * (0.16 + e*0.5);
+        vec3 col = mix(base, ember, smoothstep(0.34, 0.86, f) * 0.5);
+        col = mix(col, hot,  smoothstep(0.56, 1.02, f) * 0.4);
+        col += acid * smoothstep(0.82, 1.05, f) * (0.07 + e*0.22);
 
         // faint filament structure so it reads as fluid, not fog
         float fil = abs(sin((f + t*0.6) * 22.0));
-        col += ember * pow(1.0 - fil, 26.0) * 0.16 * (0.4 + e);
+        col = mix(col, ember, pow(1.0 - fil, 26.0) * 0.1 * (0.4 + e));
 
-        col *= 0.42 + 0.58 * (0.55 + e*0.75);
-        col *= smoothstep(1.55, 0.20, length(p) * 0.92);
+        // idle areas settle back toward the light base instead of darkening,
+        // so the field stays a soft warm wash rather than a bloom on black
+        col = mix(base, col, 0.55 + 0.45 * smoothstep(0.18, 0.95, f));
+        col = mix(base, col, smoothstep(1.55, 0.25, length(p) * 0.92));
 
-        // gentle dither to kill banding on dark gradients
-        col += (hash(gl_FragCoord.xy + u_time) - 0.5) * 0.012;
+        // gentle dither to kill banding
+        col += (hash(gl_FragCoord.xy + u_time) - 0.5) * 0.006;
 
         gl_FragColor = vec4(col, 1.0);
       }

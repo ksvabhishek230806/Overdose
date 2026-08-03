@@ -63,4 +63,43 @@ async function deleteOrder(docId){
   await firestore.deleteDoc(orderDoc);
 }
 
-window.OverdoseFirebase = { saveOrder, listenForOrders, updateOrderStatus, deleteOrder };
+/* ================= AUTH (staff pages only) ================= */
+let authInstance = null;
+let authModule = null;
+
+async function initAuth(){
+  const { app } = await initFirebase();
+  if(authInstance) return { auth: authInstance, authModule };
+  authModule = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js');
+  authInstance = authModule.getAuth(app);
+  return { auth: authInstance, authModule };
+}
+
+async function signIn(email, password){
+  const { auth, authModule } = await initAuth();
+  const credential = await authModule.signInWithEmailAndPassword(auth, email, password);
+  return credential.user;
+}
+
+async function signOut(){
+  const { auth, authModule } = await initAuth();
+  await authModule.signOut(auth);
+}
+
+/* onUser fires on every auth state change (including the initial unknown->resolved
+   transition). onError fires if auth can't even initialize (offline, bad config) -
+   callers use this to distinguish "checked, nobody's logged in" from "couldn't check". */
+async function onAuthChange(onUser, onError){
+  try{
+    const { auth, authModule } = await initAuth();
+    return authModule.onAuthStateChanged(auth, onUser, err => {
+      if(typeof onError === 'function') onError(err);
+      else console.warn('Firebase auth state error:', err.message);
+    });
+  }catch(err){
+    if(typeof onError === 'function') onError(err);
+    else console.warn('Firebase auth failed to initialize:', err.message);
+  }
+}
+
+window.OverdoseFirebase = { saveOrder, listenForOrders, updateOrderStatus, deleteOrder, signIn, signOut, onAuthChange };
