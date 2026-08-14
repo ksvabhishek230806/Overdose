@@ -45,6 +45,44 @@
   --r-l: 24px;
 }
 
+/* ------------------------------------------------------------
+   DARK THEME PALETTE
+   The original near-black/orange-glow look, restored as an opt-in.
+
+   This block only ever applies when index.html puts data-theme="dark"
+   on <html>. admin/ and kitchen/ share this stylesheet but never set
+   the attribute, so they keep resolving to the light :root above —
+   they cannot pick this up by accident.
+
+   Motion + rhythm tokens are theme-agnostic and stay inherited.
+   ------------------------------------------------------------ */
+:root[data-theme="dark"]{
+  /* --- surface --- */
+  --bg:        #050403;
+  --bg-2:      #0a0706;
+  --ink:       #f7f2e8;
+  --cream:     #f7f2e8;          /* legacy alias */
+  --gray:      #a49a8e;
+  --gray-dim:  #6d6459;
+  --panel:     rgba(247,242,232,0.038);
+  --panel-2:   #1a1109;
+  --glass:     rgba(247,242,232,0.05);
+
+  /* --- signal --- */
+  --orange:    #ff6a1a;
+  --orange-2:  #ffb020;
+  --hot:       #ff1f4f;
+  --acid:      #c6ff3a;
+  --cyan:      #21e7ff;
+  --violet:    #a06bff;
+  --green:     #35e08a;
+
+  /* --- lines --- */
+  --border:        rgba(247,242,232,0.085);
+  --border-strong: rgba(247,242,232,0.19);
+  --hair:          rgba(247,242,232,0.055);
+}
+
 *{ box-sizing:border-box; margin:0; padding:0; }
 html{ scroll-behavior:smooth; -webkit-text-size-adjust:100%; }
 html,body{
@@ -279,6 +317,22 @@ nav.links{ display:flex; align-items:center; gap:6px; }
 .icon-btn:hover{ border-color:var(--orange); background:rgba(194,83,13,.1); }
 .icon-btn:active{ transform:scale(.93); }
 .icon-btn svg{ width:16px; height:16px; }
+
+/* --- theme toggle --------------------------------------------
+   Inherits .icon-btn chrome so it needs no layout of its own.
+   Both glyphs are stacked in the same grid cell; the theme decides
+   which one is live. Light shows the moon (what you'd switch TO),
+   dark shows the sun.
+   -------------------------------------------------------------- */
+.theme-toggle{ position:relative; overflow:hidden; }
+.theme-toggle svg{
+  grid-area:1/1; transition:opacity .3s var(--ease), transform .42s var(--spring);
+}
+.theme-toggle .ico-sun{ opacity:0; transform:rotate(-70deg) scale(.5); }
+.theme-toggle .ico-moon{ opacity:1; transform:none; }
+html[data-theme="dark"] .theme-toggle .ico-sun{ opacity:1; transform:none; }
+html[data-theme="dark"] .theme-toggle .ico-moon{ opacity:0; transform:rotate(70deg) scale(.5); }
+html.no-motion .theme-toggle svg{ transition:none; }
 
 .burger{ display:none; flex-direction:column; gap:5px; align-items:center; justify-content:center; }
 .burger span{ width:17px; height:2px; border-radius:2px; background:var(--ink); transition:transform .3s var(--ease), opacity .2s; }
@@ -890,3 +944,202 @@ html.no-motion .od-toast .tbar{ animation:none; }
   .console-meta{ width:100%; justify-content:space-between; }
 }
 @media (max-width:400px){ .display{ font-size:clamp(34px,12vw,46px); } }
+
+/* ============================================================
+   21. DARK THEME — hardcoded surfaces
+   ============================================================
+   Everything above stays the light theme and remains the fallback.
+   This section only re-paints the values that were baked in as literal
+   hex/rgba and so can't follow the custom properties.
+
+   Every rule is anchored on html[data-theme="dark"], which scores
+   (0,2,1) for a descendant selector — enough to beat the plain class
+   rules above and to win the tie against the html.no-motion rules by
+   source order. A bare [data-theme="dark"] would score (0,2,0) and
+   would silently LOSE to html.no-motion, hence the html prefix.
+
+   admin/ and kitchen/ never set the attribute, so none of this can
+   reach them.
+   ============================================================ */
+
+html[data-theme="dark"] ::selection{ background:var(--orange); color:#160a03; }
+
+/* --- 0. backdrop stack --- */
+html[data-theme="dark"] #od-field{ opacity:1; }
+html[data-theme="dark"] .od-aurora i{ mix-blend-mode:screen; opacity:.55; }
+html[data-theme="dark"] .od-aurora i:nth-child(1){ background:radial-gradient(circle,rgba(255,106,26,.7),transparent 70%); }
+html[data-theme="dark"] .od-aurora i:nth-child(2){ background:radial-gradient(circle,rgba(255,31,79,.6),transparent 70%); }
+html[data-theme="dark"] .od-aurora i:nth-child(3){ background:radial-gradient(circle,rgba(198,255,58,.22),transparent 70%); }
+html[data-theme="dark"] .od-grain{ opacity:.05; }
+html[data-theme="dark"] .od-scan{
+  opacity:.28; mix-blend-mode:normal;
+  background:repeating-linear-gradient(180deg, rgba(0,0,0,0) 0 2px, rgba(0,0,0,.32) 2px 3px);
+}
+html[data-theme="dark"] .od-vignette{
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 0%, transparent 38%, rgba(4,3,2,.6) 100%),
+    radial-gradient(ellipse 120% 80% at 50% 120%, rgba(4,3,2,.68), transparent 55%);
+}
+/* restore the reduced-motion damping, which the two rules above would
+   otherwise outrank on source order */
+html.no-motion[data-theme="dark"] .od-grain{ opacity:.03; }
+html.no-motion[data-theme="dark"] .od-scan{ opacity:.12; }
+
+/* --- 1. HUD frame --- */
+html[data-theme="dark"] .od-hud .corner{ border-color:rgba(255,106,26,.5); }
+html[data-theme="dark"] .od-hud .rail{ color:rgba(247,242,232,.2); }
+html[data-theme="dark"] #od-progress{ box-shadow:0 0 14px rgba(255,106,26,.8); }
+
+/* --- 2. reticle cursor --- */
+html[data-theme="dark"] #od-cursor .cur-dot{ box-shadow:0 0 12px var(--orange), 0 0 30px rgba(255,106,26,.6); }
+html[data-theme="dark"] #od-cursor .cur-ring{ border:1px solid rgba(247,242,232,.32); }
+html[data-theme="dark"] #od-cursor .cur-ring::before,
+html[data-theme="dark"] #od-cursor .cur-ring::after{ background:rgba(255,106,26,.85); }
+html[data-theme="dark"] #od-cursor.is-hot .cur-ring{ border-color:var(--orange); background:rgba(255,106,26,.07); }
+html[data-theme="dark"] #od-cursor.is-down .cur-ring{ background:rgba(255,31,79,.18); border-color:var(--hot); }
+html[data-theme="dark"] #od-cursor .cur-label{ color:#160a03; }
+
+/* --- 3. boot sequence --- */
+html[data-theme="dark"] #od-boot{ background:#040302; }
+html[data-theme="dark"] .boot-mark{
+  border-color:rgba(255,106,26,.4);
+  background:linear-gradient(180deg,#1d1108,#0a0604);
+  box-shadow:none;
+}
+html[data-theme="dark"] .boot-mark::before{ background:conic-gradient(from 0deg, transparent, rgba(255,106,26,.7), transparent 32%); }
+html[data-theme="dark"] .boot-bar{ background:rgba(247,242,232,.1); }
+
+/* --- 4. header --- */
+html[data-theme="dark"] header.od-head{ background:rgba(5,4,3,.55); }
+html[data-theme="dark"] header.od-head::after{ background:linear-gradient(90deg,transparent,rgba(255,106,26,.5),transparent); }
+html[data-theme="dark"] .brand:hover{ background:rgba(247,242,232,.05); }
+html[data-theme="dark"] .logo-badge{
+  background:linear-gradient(180deg,#201209,#0c0704);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05), 0 6px 18px rgba(0,0,0,.5);
+}
+html[data-theme="dark"] .logo-badge::before{ background:conic-gradient(from 0deg,transparent,rgba(255,106,26,.5),transparent 30%); }
+html[data-theme="dark"] .navlink.active{ border-color:rgba(255,106,26,.4); background:rgba(255,106,26,.09); }
+html[data-theme="dark"] .navlink.active::before{ box-shadow:0 0 8px var(--orange); }
+html[data-theme="dark"] .kbd-btn{ background:rgba(247,242,232,.03); }
+html[data-theme="dark"] .kbd-btn:hover{ background:rgba(247,242,232,.06); }
+html[data-theme="dark"] .kbd-btn kbd{ background:rgba(0,0,0,.35); }
+html[data-theme="dark"] .icon-btn{ background:rgba(247,242,232,.03); }
+html[data-theme="dark"] .icon-btn:hover{ background:rgba(255,106,26,.1); }
+html[data-theme="dark"] .mobile-nav{
+  background:linear-gradient(190deg,#170e08,#080503 72%);
+  box-shadow:-30px 0 80px rgba(0,0,0,.65);
+}
+html[data-theme="dark"] .mobile-navlink{ background:rgba(247,242,232,.025); }
+html[data-theme="dark"] .mobile-navlink.active{ border-color:rgba(255,106,26,.5); background:rgba(255,106,26,.1); }
+html[data-theme="dark"] .mobile-nav-overlay{ background:rgba(3,2,2,.68); }
+
+/* --- 5. typography --- */
+html[data-theme="dark"] .display .out{ -webkit-text-stroke:1.4px rgba(247,242,232,.4); }
+
+/* --- 6. buttons --- */
+html[data-theme="dark"] .btn{
+  color:#16090b;
+  box-shadow:0 12px 34px rgba(255,31,79,.3), inset 0 1px 0 rgba(255,255,255,.28);
+}
+html[data-theme="dark"] .btn:hover{ box-shadow:0 18px 44px rgba(255,31,79,.42), inset 0 1px 0 rgba(255,255,255,.35); }
+html[data-theme="dark"] .btn::after{ background:linear-gradient(115deg,transparent,rgba(255,255,255,.5),transparent); }
+html[data-theme="dark"] .btn.ghost{ color:var(--ink); }
+html[data-theme="dark"] .btn.ghost:hover{ background:rgba(255,106,26,.09); }
+html[data-theme="dark"] .btn.acid{ color:#0b1503; box-shadow:0 12px 34px rgba(33,231,255,.22); }
+html[data-theme="dark"] .od-ripple{ background:radial-gradient(circle,rgba(255,255,255,.5),transparent 70%); }
+
+/* --- 7. tape / marquee --- */
+html[data-theme="dark"] .tape{ box-shadow:0 14px 44px rgba(255,31,79,.2); }
+html[data-theme="dark"] .tape .tape-track span{ color:#160a03; }
+html[data-theme="dark"] .tape.dark{ background:rgba(8,6,4,.75); }
+html[data-theme="dark"] .tape.dark .tape-track span{ color:var(--gray-dim); }
+
+/* --- 8. shutter --- */
+html[data-theme="dark"] .shutter i{
+  background:linear-gradient(180deg,#180d07,#050403);
+  border-right:1px solid rgba(255,106,26,.16);
+}
+
+/* --- 9. hero --- */
+html[data-theme="dark"] .status-pill{ border-color:rgba(198,255,58,.28); background:rgba(198,255,58,.06); }
+html[data-theme="dark"] .status-pill .dot{ box-shadow:0 0 12px var(--acid); }
+html[data-theme="dark"] .status-pill .sep{ background:rgba(198,255,58,.3); }
+html[data-theme="dark"] .status-pill .t{ color:rgba(198,255,58,.7); }
+html[data-theme="dark"] .specimen{
+  background:linear-gradient(158deg, rgba(46,29,17,.6), rgba(16,11,7,.48) 62%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07), 0 34px 70px rgba(0,0,0,.5);
+}
+html[data-theme="dark"] .specimen::before{
+  background:radial-gradient(340px circle at var(--mx,50%) var(--my,50%), rgba(255,106,26,.2), transparent 62%);
+}
+html[data-theme="dark"] .specimen .grid-lines{
+  opacity:.4;
+  background-image:linear-gradient(rgba(247,242,232,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(247,242,232,.05) 1px, transparent 1px);
+}
+html[data-theme="dark"] .specimen .halo{ border-color:rgba(255,106,26,.12); }
+html[data-theme="dark"] .specimen .halo.b{ border-color:rgba(255,31,79,.16); }
+html[data-theme="dark"] .spec-bars i{ background:rgba(247,242,232,.12); }
+
+/* --- 10. stats --- */
+html[data-theme="dark"] .stat-cell:hover{ border-color:rgba(255,106,26,.4); }
+
+/* --- 11. section rows --- */
+html[data-theme="dark"] .row-item::before{ background:linear-gradient(90deg, rgba(255,106,26,.1), transparent 55%); }
+html[data-theme="dark"] .row-item:hover .row-a{ color:#160a03; }
+
+/* --- 12. CTA banner --- */
+html[data-theme="dark"] .cta-inner{ background:linear-gradient(158deg, rgba(28,15,7,.7), rgba(8,5,3,.55) 68%); }
+html[data-theme="dark"] .cta-inner::before{ background:radial-gradient(ellipse 70% 60% at 50% 0%, rgba(255,106,26,.22), transparent 68%); }
+html[data-theme="dark"] .cta-inner::after{ background-image:linear-gradient(rgba(247,242,232,.04) 1px,transparent 1px); }
+
+/* --- 13. menu / the lab --- */
+html[data-theme="dark"] .lab-bar{ background:rgba(247,242,232,.03); }
+html[data-theme="dark"] .lab-bar .meta i{ box-shadow:0 0 8px var(--acid); }
+html[data-theme="dark"] .tabs{ background:rgba(10,7,5,.6); }
+html[data-theme="dark"] .tab.active{ color:#160a03; }
+html[data-theme="dark"] .tab-indicator{ box-shadow:0 6px 20px rgba(255,31,79,.4); }
+html[data-theme="dark"] .search-wrap input{ background:rgba(247,242,232,.03); }
+html[data-theme="dark"] .search-wrap input:focus{ background:rgba(255,106,26,.06); }
+html[data-theme="dark"] .col-icon{ background:rgba(255,106,26,.09); }
+html[data-theme="dark"] .item-card{
+  background:rgba(247,242,232,.028);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035);
+}
+html[data-theme="dark"] .item-card:hover{
+  border-color:rgba(255,106,26,.42); background:rgba(247,242,232,.045);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06), 0 22px 46px rgba(0,0,0,.4);
+}
+html[data-theme="dark"] .item-card .vial{ background:rgba(247,242,232,.07); }
+html[data-theme="dark"] .item-card .vial::after{ box-shadow:0 0 14px rgba(255,106,26,.55); }
+html[data-theme="dark"] .item-card::before{
+  background:radial-gradient(300px circle at var(--mx,50%) var(--my,50%), rgba(255,106,26,.16), transparent 62%);
+}
+html[data-theme="dark"] .item-card.in-cart{ border-color:rgba(198,255,58,.35); }
+html[data-theme="dark"] .item-card.in-cart .vial::after{ box-shadow:0 0 14px rgba(198,255,58,.5); }
+html[data-theme="dark"] .badge{ background:rgba(255,106,26,.14); border-color:rgba(255,106,26,.32); }
+html[data-theme="dark"] .tag{ background:rgba(0,0,0,.25); }
+html[data-theme="dark"] .stock-badge{ background:rgba(169,162,154,.1); }
+
+/* --- 15. command palette --- */
+html[data-theme="dark"] #od-palette{ background:rgba(4,3,2,.72); }
+html[data-theme="dark"] .pal-box{
+  background:linear-gradient(180deg,#150e09,#0a0705);
+  box-shadow:0 40px 100px rgba(0,0,0,.7);
+}
+html[data-theme="dark"] .pal-item.sel,
+html[data-theme="dark"] .pal-item:hover{ background:rgba(255,106,26,.1); border-color:rgba(255,106,26,.28); }
+html[data-theme="dark"] .pal-ico{ background:rgba(247,242,232,.06); }
+
+/* --- 16. toasts --- */
+html[data-theme="dark"] .od-toast{
+  background:rgba(18,12,9,.9);
+  box-shadow:0 16px 40px rgba(0,0,0,.5);
+}
+html[data-theme="dark"] .od-toast .tk{ box-shadow:0 0 10px var(--acid); }
+html[data-theme="dark"] .od-toast.is-warn .tk{ box-shadow:0 0 10px var(--orange-2); }
+html[data-theme="dark"] .od-toast.is-err .tk{ box-shadow:0 0 10px var(--hot); }
+
+/* --- 18. touch affordances --- */
+@media (hover:none){
+  html[data-theme="dark"] .item-card:active{ background:rgba(247,242,232,.05); }
+}

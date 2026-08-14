@@ -9,6 +9,28 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700;800&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<script>
+/* Theme bootstrap. Runs before first paint so reloading in dark mode doesn't
+   flash the light palette. Deliberately inline and dependency-free — utils.js
+   and its readStorage() helper load at the end of <body>, far too late.
+   Storage key is kept in sync with THEME_KEY in js/fx.js. */
+(function () {
+  var t = 'light';                                  // default with nothing stored
+  try {
+    var v = window.localStorage.getItem('od-theme');
+    if (v === 'dark' || v === 'light') t = v;
+  } catch (e) {
+    /* private mode / blocked storage / cookies off — keep the default */
+  }
+  document.documentElement.setAttribute('data-theme', t);
+  if (t === 'dark') {
+    var m = document.querySelector('meta[name="theme-color"]');
+    if (m) m.setAttribute('content', '#050403');
+  }
+})();
+</script>
+
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/cart.css">
 </head>
@@ -75,6 +97,10 @@
   <div class="head-tools">
     <button class="kbd-btn" data-open-palette data-cursor="COMMAND">
       <span>COMMAND</span><kbd>⌘K</kbd>
+    </button>
+    <button class="icon-btn theme-toggle" data-theme-toggle aria-pressed="false" aria-label="Switch to dark theme" data-cursor="LIGHTS OUT">
+      <svg class="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.6A8.2 8.2 0 0 1 9.4 4 8.6 8.6 0 1 0 20 14.6z"/></svg>
+      <svg class="ico-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.7v2.1M12 19.2v2.1M2.7 12h2.1M19.2 12h2.1M5.4 5.4l1.5 1.5M17.1 17.1l1.5 1.5M18.6 5.4l-1.5 1.5M6.9 17.1l-1.5 1.5"/></svg>
     </button>
     <button class="icon-btn" onclick="shareMenu()" aria-label="Share the menu" data-cursor="SHARE">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></svg>

@@ -40,10 +40,13 @@
      ========================================================== */
   const Field = (function () {
     let gl, prog, raf, canvas;
-    let uRes, uTime, uMouse, uEnergy, uScroll;
+    let uRes, uTime, uMouse, uEnergy, uScroll, uDark;
     let mx = 0.5, my = 0.5, tx = 0.5, ty = 0.5;
     let energy = 0, energyTarget = 0;
     let scroll = 0;
+    // Theme mix for the shader. Defaults to 0 (light) so pages that never
+    // set data-theme — kitchen/ and admin/ — are unaffected by this module.
+    let dark = 0, darkTarget = 0;
     let running = false;
     let t0 = performance.now();
 
@@ -59,6 +62,7 @@
       uniform vec2  u_mouse;
       uniform float u_energy;
       uniform float u_scroll;
+      uniform float u_dark;   // 0 = light theme, 1 = dark theme
 
       float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7))) * 43758.5453123); }
 
@@ -98,26 +102,46 @@
         f += 0.30 * exp(-md*2.6) * (0.55 + e*1.6);
         f += e * 0.10;
 
-        vec3 base  = vec3(0.965, 0.947, 0.902);
-        vec3 ember = vec3(0.760, 0.325, 0.051);
-        vec3 hot   = vec3(0.722, 0.071, 0.247);
-        vec3 acid  = vec3(0.369, 0.478, 0.071);
+        // Shared structure — the expensive fbm work above is computed once
+        // and feeds both palettes.
+        float fil = abs(sin((f + t*0.6) * 22.0));   // filament detail
+        float fal = pow(1.0 - fil, 26.0);
+        float d   = length(p) * 0.92;               // radial falloff
 
-        vec3 col = mix(base, ember, smoothstep(0.34, 0.86, f) * 0.5);
-        col = mix(col, hot,  smoothstep(0.56, 1.02, f) * 0.4);
-        col += acid * smoothstep(0.82, 1.05, f) * (0.07 + e*0.22);
+        // ---- LIGHT: settles back toward the cream base so the field reads
+        //      as a soft warm wash rather than a bloom on black ----
+        vec3 baseL  = vec3(0.965, 0.947, 0.902);
+        vec3 emberL = vec3(0.760, 0.325, 0.051);
+        vec3 hotL   = vec3(0.722, 0.071, 0.247);
+        vec3 acidL  = vec3(0.369, 0.478, 0.071);
 
-        // faint filament structure so it reads as fluid, not fog
-        float fil = abs(sin((f + t*0.6) * 22.0));
-        col = mix(col, ember, pow(1.0 - fil, 26.0) * 0.1 * (0.4 + e));
+        vec3 colL = mix(baseL, emberL, smoothstep(0.34, 0.86, f) * 0.5);
+        colL = mix(colL, hotL, smoothstep(0.56, 1.02, f) * 0.4);
+        colL += acidL * smoothstep(0.82, 1.05, f) * (0.07 + e*0.22);
+        colL = mix(colL, emberL, fal * 0.1 * (0.4 + e));
+        colL = mix(baseL, colL, 0.55 + 0.45 * smoothstep(0.18, 0.95, f));
+        colL = mix(baseL, colL, smoothstep(1.55, 0.25, d));
 
-        // idle areas settle back toward the light base instead of darkening,
-        // so the field stays a soft warm wash rather than a bloom on black
-        col = mix(base, col, 0.55 + 0.45 * smoothstep(0.18, 0.95, f));
-        col = mix(base, col, smoothstep(1.55, 0.25, length(p) * 0.92));
+        // ---- DARK: multiplies down to near-black so the ember/hot bloom
+        //      glows out of the darkness ----
+        vec3 baseD  = vec3(0.016, 0.012, 0.011);
+        vec3 emberD = vec3(1.00, 0.34, 0.06);
+        vec3 hotD   = vec3(1.00, 0.12, 0.33);
+        vec3 acidD  = vec3(0.66, 1.00, 0.18);
 
-        // gentle dither to kill banding
-        col += (hash(gl_FragCoord.xy + u_time) - 0.5) * 0.006;
+        vec3 colD = mix(baseD, emberD, smoothstep(0.34, 0.86, f));
+        colD = mix(colD, hotD, smoothstep(0.56, 1.02, f) * 0.85);
+        colD += acidD * smoothstep(0.82, 1.05, f) * (0.16 + e*0.5);
+        colD += emberD * fal * 0.16 * (0.4 + e);
+        colD *= 0.42 + 0.58 * (0.55 + e*0.75);
+        colD *= smoothstep(1.55, 0.20, d);
+
+        // Crossfade. u_dark is eased on the JS side, so flipping the theme
+        // dissolves the field between the two looks instead of popping.
+        vec3 col = mix(colL, colD, u_dark);
+
+        // gentle dither to kill banding — dark gradients need more of it
+        col += (hash(gl_FragCoord.xy + u_time) - 0.5) * mix(0.006, 0.012, u_dark);
 
         gl_FragColor = vec4(col, 1.0);
       }
@@ -153,6 +177,9 @@
       my = lerp(my, ty, 0.06);
       energyTarget *= 0.955;
       energy = lerp(energy, energyTarget, 0.09);
+      // ~0.4s crossfade when the theme flips; snaps under reduced motion
+      dark = RM ? darkTarget : lerp(dark, darkTarget, 0.10);
+      if (Math.abs(dark - darkTarget) < 0.001) dark = darkTarget;
 
       const h = document.documentElement;
       const max = h.scrollHeight - h.clientHeight;
@@ -163,6 +190,7 @@
       gl.uniform2f(uMouse, mx, 1.0 - my);
       gl.uniform1f(uEnergy, energy);
       gl.uniform1f(uScroll, scroll);
+      gl.uniform1f(uDark, dark);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
       raf = requestAnimationFrame(frame);
     }
@@ -204,6 +232,12 @@
       uMouse = gl.getUniformLocation(prog, 'u_mouse');
       uEnergy = gl.getUniformLocation(prog, 'u_energy');
       uScroll = gl.getUniformLocation(prog, 'u_scroll');
+      uDark = gl.getUniformLocation(prog, 'u_dark');
+
+      // Adopt whatever theme the pre-paint script already settled on, with
+      // no crossfade — the first frame should just be correct.
+      dark = darkTarget =
+        document.documentElement.getAttribute('data-theme') === 'dark' ? 1 : 0;
 
       resize();
       window.addEventListener('resize', resize, { passive: true });
@@ -225,7 +259,13 @@
 
     return {
       init,
-      pump(v) { energyTarget = clamp(energyTarget + (v == null ? 0.55 : v), 0, 1.6); }
+      pump(v) { energyTarget = clamp(energyTarget + (v == null ? 0.55 : v), 0, 1.6); },
+      setTheme(isDark) {
+        darkTarget = isDark ? 1 : 0;
+        // Nothing is drawing while the tab is hidden, so land on the value
+        // immediately rather than crossfading from a stale frame on resume.
+        if (!running) dark = darkTarget;
+      }
     };
   })();
 
@@ -678,10 +718,83 @@
   }
 
   /* ==========================================================
+     13. THEME  (light / dark)
+     Storefront-only: this module no-ops on any page without a
+     [data-theme-toggle] control, so kitchen/ and admin/ stay on
+     the light :root palette and never gain the attribute.
+
+     The *initial* theme is applied by a small inline script in
+     index.html's <head>, before first paint, so a dark reload
+     doesn't flash cream. This module owns everything after that:
+     the toggle, persistence, and the shader crossfade.
+     ========================================================== */
+  const THEME_KEY = 'od-theme';   // kept in sync with the inline <head> script
+  let themeMemory = null;         // fallback when localStorage is unavailable
+
+  function persistTheme(name) {
+    // Always remember in-memory so the toggle still works for the session
+    // even when the write below is refused.
+    themeMemory = name;
+    try {
+      window.localStorage.setItem(THEME_KEY, name);
+    } catch (e) {
+      /* private mode, blocked storage, cookies off — non-fatal */
+    }
+  }
+
+  function currentTheme() {
+    return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  }
+
+  function applyTheme(name) {
+    const isDark = name === 'dark';
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+
+    // Relight the WebGL field. No-ops if WebGL never came up, in which case
+    // the CSS aurora fallback carries the theme instead.
+    Field.setTheme(isDark);
+
+    // Keep the mobile browser chrome in step with the page.
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', isDark ? '#050403' : '#F7F2E6');
+
+    document.querySelectorAll('[data-theme-toggle]').forEach((btn) => {
+      btn.setAttribute('aria-pressed', String(isDark));
+      btn.setAttribute('aria-label', isDark ? 'Switch to light theme' : 'Switch to dark theme');
+      btn.dataset.cursor = isDark ? 'LIGHTS ON' : 'LIGHTS OUT';
+    });
+
+    document.dispatchEvent(new CustomEvent('od:theme', { detail: { theme: name } }));
+  }
+
+  OD.theme = currentTheme;
+  OD.setTheme = function (name) {
+    const t = name === 'dark' ? 'dark' : 'light';
+    applyTheme(t);
+    persistTheme(t);
+  };
+  OD.toggleTheme = function () {
+    OD.setTheme(currentTheme() === 'dark' ? 'light' : 'dark');
+  };
+
+  function initTheme() {
+    const btns = document.querySelectorAll('[data-theme-toggle]');
+    if (!btns.length) return;
+    // Sync the control labels and the shader to whatever the pre-paint
+    // script already resolved, without re-persisting it.
+    applyTheme(currentTheme());
+    btns.forEach((b) => b.addEventListener('click', () => {
+      OD.toggleTheme();
+      OD.energy(0.5);
+    }));
+  }
+
+  /* ==========================================================
      BOOTSTRAP
      ========================================================== */
   function start() {
     Field.init();
+    initTheme();
     initCursor();
     // Pages with a boot curtain defer these until OD.boot() finishes.
     if (!document.getElementById('od-boot')) {
